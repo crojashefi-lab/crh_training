@@ -134,6 +134,7 @@ button{cursor:pointer}
 .ej-body{padding:0 .85rem .85rem}
 .spec-row{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.65rem}
 .spec{padding:.2rem .55rem;background:var(--bg4);border-radius:6px;font-size:.72rem;color:var(--text2)}
+.btn-ej-link{display:flex;align-items:center;gap:.4rem;padding:.55rem .8rem;background:var(--bluebg);border:1px solid #2547e840;border-radius:var(--r);color:var(--accent2);font-size:.78rem;font-weight:600;text-decoration:none;margin-bottom:.6rem}
 .rpe-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.3rem;margin-bottom:.6rem}
 .rpe-btn{height:36px;border-radius:8px;border:1px solid var(--border2);background:var(--bg4);color:var(--text2);font-size:.82rem;font-weight:700;transition:all .12s}
 .rpe-btn.sel-g{background:var(--greenbg);border-color:var(--green);color:var(--green)}
@@ -247,7 +248,7 @@ select.inp{appearance:none;-webkit-appearance:none}
 
 /* ── INLINE TABS ── */
 .itabs{display:flex;gap:3px;background:var(--bg3);border-radius:var(--r);padding:3px;margin-bottom:1rem;border:1px solid var(--border2)}
-.itab{flex:1;padding:.4rem;border:none;background:transparent;color:var(--text3);font-size:.76rem;font-weight:600;border-radius:8px;transition:all .15s}
+.itab{flex:1;padding:.4rem .15rem;border:none;background:transparent;color:var(--text3);font-size:.7rem;font-weight:600;border-radius:8px;transition:all .15s}
 .itab.on{background:var(--bg5);color:var(--text)}
 
 /* ── DIAS SELECTOR ── */
@@ -308,6 +309,7 @@ select.inp{appearance:none;-webkit-appearance:none}
     <button class="itab on" onclick="showPTab('inicio')">Inicio</button>
     <button class="itab" onclick="showPTab('alumnos')">Alumnos</button>
     <button class="itab" onclick="showPTab('rutinas')">Rutinas</button>
+    <button class="itab" onclick="showPTab('pagos')">Pagos</button>
     <button class="itab" onclick="showPTab('reportes')">Reportes</button>
     <button class="itab" onclick="showPTab('config')">Config</button>
   </div>
@@ -319,6 +321,11 @@ select.inp{appearance:none;-webkit-appearance:none}
         <span style="font-size:1.3rem">⏳</span>
         <div class="flex-1"><div class="trial-text" id="trial-text">Trial: 14 días restantes</div><div class="trial-sub">Agrega tu tarjeta para no perder el acceso</div></div>
         <button class="btn-sub" onclick="suscribirse()">Suscribirme</button>
+      </div>
+      <div class="trial-banner" id="mem-banner" style="display:none;border-color:#ef444433;background:linear-gradient(135deg,var(--redbg),transparent)">
+        <span style="font-size:1.3rem">💳</span>
+        <div class="flex-1"><div class="trial-text" id="mem-banner-text" style="color:var(--red)">0 membresías vencidas</div><div class="trial-sub">Revisa quién debe renovar</div></div>
+        <button class="btn-sub" style="background:var(--red)" onclick="showPTab('pagos')">Ver</button>
       </div>
       <div class="metric-grid">
         <div class="metric"><div class="metric-lbl">Alumnos activos</div><div class="metric-val" id="p-activos" style="color:var(--text)">0</div><div class="metric-note" style="color:var(--text2)" id="p-activos-note"></div></div>
@@ -339,8 +346,8 @@ select.inp{appearance:none;-webkit-appearance:none}
       <div id="alertas-list"></div>
       <div class="sec-title">Accesos rápidos</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
-        <button class="a-item" style="cursor:pointer;border-radius:var(--r)" onclick="showPTab('alumnos');openModal('m-nuevo-alumno')"><span>👤</span><span class="a-name">+ Nuevo alumno</span></button>
-        <button class="a-item" style="cursor:pointer;border-radius:var(--r)" onclick="showPTab('rutinas');openModal('m-nueva-rutina')"><span>📋</span><span class="a-name">+ Nueva rutina</span></button>
+        <button class="a-item" style="cursor:pointer;border-radius:var(--r)" onclick="showPTab('alumnos');resetAlumnoForm();openModal('m-nuevo-alumno')"><span>👤</span><span class="a-name">+ Nuevo alumno</span></button>
+        <button class="a-item" style="cursor:pointer;border-radius:var(--r)" onclick="showPTab('rutinas');resetRutinaForm();openModal('m-nueva-rutina')"><span>📋</span><span class="a-name">+ Nueva rutina</span></button>
         <button class="a-item" style="cursor:pointer;border-radius:var(--r)" onclick="showPTab('reportes')"><span>📊</span><span class="a-name">Ver reportes</span></button>
         <button class="a-item" style="cursor:pointer;border-radius:var(--r)" onclick="showPTab('config')"><span>⚙️</span><span class="a-name">Configuración</span></button>
       </div>
@@ -350,7 +357,7 @@ select.inp{appearance:none;-webkit-appearance:none}
     <div id="pt-alumnos" style="display:none">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
         <div class="sec-title" style="margin:0" id="alumnos-count">Mis alumnos</div>
-        <button class="btn-sm btn-accent" onclick="openModal('m-nuevo-alumno')">+ Alumno</button>
+        <button class="btn-sm btn-accent" onclick="resetAlumnoForm();openModal('m-nuevo-alumno')">+ Alumno</button>
       </div>
       <div id="prof-alumnos-list"></div>
     </div>
@@ -359,9 +366,24 @@ select.inp{appearance:none;-webkit-appearance:none}
     <div id="pt-rutinas" style="display:none">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
         <div class="sec-title" style="margin:0" id="rutinas-count">Mis rutinas</div>
-        <button class="btn-sm btn-accent" onclick="openModal('m-nueva-rutina')">+ Rutina</button>
+        <button class="btn-sm btn-accent" onclick="resetRutinaForm();openModal('m-nueva-rutina')">+ Rutina</button>
       </div>
       <div id="prof-rutinas-list"></div>
+    </div>
+
+    <!-- PAGOS / MEMBRESÍAS -->
+    <div id="pt-pagos" style="display:none">
+      <div class="sec-title">Estado de membresías</div>
+      <div class="metric-grid">
+        <div class="metric"><div class="metric-lbl">Vencidas</div><div class="metric-val" style="color:var(--red)" id="mem-vencidas">0</div><div class="metric-note" style="color:var(--red)">renovar ya</div></div>
+        <div class="metric"><div class="metric-lbl">Próximas a vencer</div><div class="metric-val" style="color:var(--yellow)" id="mem-proximas">0</div><div class="metric-note" style="color:var(--text2)">≤ 5 días</div></div>
+      </div>
+      <div class="sec-title" id="mem-vencidas-title" style="display:none">🔴 Vencidas — renovar ahora</div>
+      <div id="mem-vencidas-list"></div>
+      <div class="sec-title" id="mem-proximas-title" style="display:none">🟡 Próximas a vencer</div>
+      <div id="mem-proximas-list"></div>
+      <div class="sec-title">Todas las membresías</div>
+      <div id="mem-todas-list"></div>
     </div>
 
     <!-- REPORTES -->
@@ -436,22 +458,23 @@ select.inp{appearance:none;-webkit-appearance:none}
 <div class="modal-bg" id="m-nuevo-alumno" onclick="closeMOutside(event,'m-nuevo-alumno')">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">Agregar alumno</div>
+    <div class="modal-title" id="m-alumno-title">Agregar alumno</div>
     <div class="m-field"><label>Nombre completo</label><input class="inp" id="na-nombre" placeholder="Matías Moreno"></div>
     <div class="m-field"><label>Edad</label><input class="inp" id="na-edad" type="number" placeholder="17"></div>
     <div class="m-field"><label>Nivel</label>
       <select class="inp" id="na-nivel"><option>Básico</option><option>Intermedio</option><option selected>Avanzado</option></select></div>
     <div class="m-field"><label>Grupo / disciplina</label><input class="inp" id="na-grupo" placeholder="Halterofilia Juvenil"></div>
     <div class="m-field"><label>Código de acceso (login)</label><input class="inp" id="na-codigo" placeholder="matias2026"></div>
+    <div class="m-field"><label>Último pago (membresía 30 días)</label><input class="inp" id="na-pago" type="date"></div>
     <div class="m-field"><label>Observaciones</label><textarea class="inp" id="na-obs" rows="2" placeholder="Lesiones, notas..." style="resize:none"></textarea></div>
-    <button class="btn-main" onclick="agregarAlumno()">Agregar alumno</button>
+    <button class="btn-main" id="m-alumno-btn" onclick="agregarAlumno()">Agregar alumno</button>
   </div>
 </div>
 
 <div class="modal-bg" id="m-nueva-rutina" onclick="closeMOutside(event,'m-nueva-rutina')">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">Crear rutina</div>
+    <div class="modal-title" id="m-rutina-title">Crear rutina</div>
     <div class="m-field"><label>Nombre de la sesión</label><input class="inp" id="nr-nombre" placeholder="Fuerza inferior — Martes"></div>
     <div class="m-field"><label>Días de la semana</label>
       <div class="dias-wrap" id="dias-wrap">
@@ -475,7 +498,11 @@ select.inp{appearance:none;-webkit-appearance:none}
           <input class="b-inp" placeholder="RPE obj." type="number" step="0.5">
           <input class="b-inp" placeholder="Desc.seg" type="number">
         </div>
+        <div class="b-row">
+          <input class="b-inp" placeholder="Carga sugerida (kg)" type="number" step="0.5">
+        </div>
         <div class="b-row"><input class="b-inp" style="flex:1" placeholder="Obs. técnica (opcional)"></div>
+        <div class="b-row"><input class="b-inp" style="flex:1" placeholder="Link o imagen del ejercicio (opcional)"></div>
       </div>
     </div>
     <button class="btn-add-ej" onclick="addEj()">+ Ejercicio</button>
@@ -483,7 +510,7 @@ select.inp{appearance:none;-webkit-appearance:none}
     <div class="m-field"><label>Asignar a</label>
       <select class="inp" id="nr-asignar"><option value="todos">Todos los alumnos</option></select>
     </div>
-    <button class="btn-main" style="margin-top:.5rem" onclick="crearRutina()">Crear rutina</button>
+    <button class="btn-main" style="margin-top:.5rem" id="m-rutina-btn" onclick="crearRutina()">Crear rutina</button>
   </div>
 </div>
 
@@ -511,6 +538,40 @@ const fCLP = n => new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP'
 const fFecha = d => new Date(d+'T12:00:00').toLocaleDateString('es-CL')
 const iniciales = s => s.split(' ').map(p=>p[0]).join('').slice(0,2).toUpperCase()
 const hoy = () => new Date().toISOString().split('T')[0]
+
+// ── Membresías: planes de 30 días desde el último pago ──
+function diasParaVencer(ultimoPago){
+  if(!ultimoPago)return null
+  const venc=new Date(ultimoPago+'T12:00:00')
+  venc.setDate(venc.getDate()+30)
+  const ahora=new Date(hoy()+'T12:00:00')
+  return Math.round((venc-ahora)/(1000*60*60*24))
+}
+function fechaVencimiento(ultimoPago){
+  if(!ultimoPago)return null
+  const venc=new Date(ultimoPago+'T12:00:00')
+  venc.setDate(venc.getDate()+30)
+  return venc.toISOString().split('T')[0]
+}
+// Estado: 'vencido' | 'proximo' (<=5 días) | 'ok'
+function estadoMembresia(ultimoPago){
+  const d=diasParaVencer(ultimoPago)
+  if(d===null)return 'sin-datos'
+  if(d<0)return 'vencido'
+  if(d<=5)return 'proximo'
+  return 'ok'
+}
+function renovarPago(alumnoId){
+  const alumnos=getAlumnos()
+  const al=alumnos.find(a=>a.id===alumnoId)
+  if(!al)return
+  al.ultimoPago=hoy()
+  save('alumnos',alumnos)
+  toast(`Membresía de ${al.nombre} renovada ✓`,'ok')
+  renderProfMembresias()
+  renderProfAlumnos()
+}
+
 const colorRPE = r => r<=6.5?'var(--green)':r<=8?'var(--yellow)':'var(--red)'
 const pillRPE = r => r<=6.5?'pill-green':r<=8?'pill-yellow':'pill-red'
 const aColor = r => r<=6.5?'hl-g':r<=8?'hl-y':'hl-r'
@@ -562,7 +623,7 @@ function loginProf(){
   if(!prof){toast('Correo o contraseña incorrectos','err');return}
   if(!prof.activo){toast('Cuenta suspendida. Contáctanos.','err');return}
   currentUser=prof;currentRole='prof'
-  renderProf();showScreen('prof')
+  renderProf();showScreen('prof');showPTab('inicio')
 }
 function loginAlumno(){
   const code=document.getElementById('a-code').value.trim().toLowerCase()
@@ -580,14 +641,15 @@ function logout(){currentUser=null;currentRole=null;showScreen('login')}
 //  PROFESOR
 // ═══════════════════════════════════════════════════════════
 function showPTab(tab){
-  ['inicio','alumnos','rutinas','reportes','config'].forEach(t=>{
+  ['inicio','alumnos','rutinas','pagos','reportes','config'].forEach(t=>{
     document.getElementById('pt-'+t).style.display=t===tab?'block':'none'
   })
   document.querySelectorAll('#prof-itabs .itab').forEach((b,i)=>{
-    b.classList.toggle('on',['inicio','alumnos','rutinas','reportes','config'][i]===tab)
+    b.classList.toggle('on',['inicio','alumnos','rutinas','pagos','reportes','config'][i]===tab)
   })
   if(tab==='alumnos')renderProfAlumnos()
   if(tab==='rutinas')renderProfRutinas()
+  if(tab==='pagos')renderProfMembresias()
   if(tab==='reportes')renderProfReportes()
   if(tab==='config')renderConfig()
 }
@@ -642,7 +704,16 @@ function renderProf(){
       <span class="pill pill-red">RPE ${r.rpePromedio}</span>
     </div>`
   }).join('')
-  showPTab('inicio')
+  // Membresías vencidas (banner)
+  const todosAlumnos=getAlumnos().filter(a=>a.profId===currentUser.id)
+  const vencidas=todosAlumnos.filter(a=>estadoMembresia(a.ultimoPago)==='vencido')
+  const mb=document.getElementById('mem-banner')
+  if(vencidas.length>0){
+    mb.style.display='flex'
+    document.getElementById('mem-banner-text').textContent=`${vencidas.length} membresía${vencidas.length!==1?'s':''} vencida${vencidas.length!==1?'s':''}`
+  }else{
+    mb.style.display='none'
+  }
 }
 function renderProfAlumnos(){
   const alumnos=getAlumnos().filter(a=>a.profId===currentUser.id)
@@ -660,11 +731,67 @@ function renderProfAlumnos(){
           <div class="a-meta">${al.grupo||''} · ${al.nivel} · código: ${al.codigo}</div>
         </div>
         <div style="text-align:right">
-          <span class="pill ${al.pagado?'pill-green':'pill-red'}" style="margin-bottom:3px">${al.pagado?'Pagado':'Sin pago'}</span>
+          ${pillMembresia(al.ultimoPago)}
           ${rpe?`<div style="font-size:.7rem;color:${colorRPE(rpe)};margin-top:2px">RPE ${rpe}</div>`:'<div style="font-size:.7rem;color:var(--text3)">sin registro</div>'}
         </div>
+        <button class="btn-sm btn-accent" style="margin-left:.5rem" onclick="event.stopPropagation();editarAlumno('${al.id}')">Editar</button>
       </div>`
     }).join('')
+}
+// Pill visual de estado de membresía
+function pillMembresia(ultimoPago){
+  const estado=estadoMembresia(ultimoPago)
+  if(estado==='sin-datos')return `<span class="pill pill-gray" style="margin-bottom:3px">Sin datos</span>`
+  if(estado==='vencido')return `<span class="pill pill-red" style="margin-bottom:3px">Vencida</span>`
+  if(estado==='proximo')return `<span class="pill pill-yellow" style="margin-bottom:3px">Por vencer</span>`
+  return `<span class="pill pill-green" style="margin-bottom:3px">Al día</span>`
+}
+function renderProfMembresias(){
+  const alumnos=getAlumnos().filter(a=>a.profId===currentUser.id)
+  const vencidas=[],proximas=[],ok=[]
+  alumnos.forEach(al=>{
+    const estado=estadoMembresia(al.ultimoPago)
+    if(estado==='vencido')vencidas.push(al)
+    else if(estado==='proximo')proximas.push(al)
+    else ok.push(al)
+  })
+  document.getElementById('mem-vencidas').textContent=vencidas.length
+  document.getElementById('mem-proximas').textContent=proximas.length
+
+  const filaAlumno=(al,destacar)=>{
+    const dias=diasParaVencer(al.ultimoPago)
+    const venc=fechaVencimiento(al.ultimoPago)
+    let nota
+    if(dias===null)nota='Sin fecha de pago registrada'
+    else if(dias<0)nota=`Venció hace ${Math.abs(dias)} día${Math.abs(dias)!==1?'s':''} · ${fFecha(venc)}`
+    else if(dias===0)nota=`Vence hoy · ${fFecha(venc)}`
+    else nota=`Vence en ${dias} día${dias!==1?'s':''} · ${fFecha(venc)}`
+    return `<div class="a-item ${destacar||''}">
+      <div class="ava" style="background:var(--accentbg);color:var(--accent2)">${iniciales(al.nombre)}</div>
+      <div style="flex:1">
+        <div class="a-name">${al.nombre}</div>
+        <div class="a-meta">${nota}</div>
+      </div>
+      <button class="btn-sm btn-success" onclick="renovarPago('${al.id}')">Renovar 30d</button>
+    </div>`
+  }
+
+  document.getElementById('mem-vencidas-title').style.display=vencidas.length?'block':'none'
+  document.getElementById('mem-vencidas-list').innerHTML=vencidas.map(al=>filaAlumno(al,'hl-r')).join('')
+
+  document.getElementById('mem-proximas-title').style.display=proximas.length?'block':'none'
+  document.getElementById('mem-proximas-list').innerHTML=proximas.map(al=>filaAlumno(al,'hl-y')).join('')
+
+  document.getElementById('mem-todas-list').innerHTML=alumnos.length===0
+    ?'<div class="empty"><div class="empty-ico">💳</div><div class="empty-txt">Agrega alumnos para ver sus membresías</div></div>'
+    :alumnos.map(al=>filaAlumno(al,aColorMembresia(al.ultimoPago))).join('')
+}
+function aColorMembresia(ultimoPago){
+  const e=estadoMembresia(ultimoPago)
+  if(e==='vencido')return 'hl-r'
+  if(e==='proximo')return 'hl-y'
+  if(e==='ok')return 'hl-g'
+  return ''
 }
 function renderProfRutinas(){
   const rutinas=getRutinas().filter(r=>r.profId===currentUser.id)
@@ -684,6 +811,7 @@ function renderProfRutinas(){
           <span class="pill pill-accent" style="margin-top:.4rem">${r.asignada==='todos'?'Todos':getAlumnos().find(a=>a.id===r.asignada)?.nombre||r.asignada}</span>
         </div>
         <div style="display:flex;gap:.3rem">
+          <button class="btn-sm btn-accent" onclick="editarRutina('${r.id}')">Editar</button>
           <button class="btn-sm" onclick="openAsignar('${r.id}')">Asignar</button>
           <button class="btn-sm btn-danger" onclick="eliminarRutina('${r.id}')">✕</button>
         </div>
@@ -734,28 +862,66 @@ function guardarConfig(){
   toast('Configuración guardada ✓','ok')
 }
 function suscribirse(){toast('Redirigiendo a Mercado Pago...','inf')}
+let alumnoEditando = null // id de alumno en edición, null = creando nuevo
+
 function agregarAlumno(){
   const nombre=document.getElementById('na-nombre').value.trim()
   const codigo=document.getElementById('na-codigo').value.trim().toLowerCase()
   if(!nombre||!codigo){toast('Nombre y código son obligatorios','err');return}
   const alumnos=getAlumnos()
-  if(alumnos.find(a=>a.codigo===codigo)){toast('Ese código ya existe','err');return}
-  alumnos.push({
-    id:'a'+Date.now(),profId:currentUser.id,
+  const pagoInput=document.getElementById('na-pago').value
+  const datos={
     nombre,edad:+document.getElementById('na-edad').value||0,
     nivel:document.getElementById('na-nivel').value,
     grupo:document.getElementById('na-grupo').value,
-    codigo,pagado:false,activo:true,
+    codigo,
+    ultimoPago:pagoInput||hoy(),
     obs:document.getElementById('na-obs').value
-  })
-  save('alumnos',alumnos)
+  }
+
+  if(alumnoEditando){
+    // Verificar código duplicado (excluyendo el propio alumno)
+    if(alumnos.find(a=>a.codigo===codigo&&a.id!==alumnoEditando)){toast('Ese código ya existe','err');return}
+    const idx=alumnos.findIndex(a=>a.id===alumnoEditando)
+    if(idx>=0)alumnos[idx]={...alumnos[idx],...datos}
+    save('alumnos',alumnos)
+    toast('Alumno actualizado ✓','ok')
+  }else{
+    if(alumnos.find(a=>a.codigo===codigo)){toast('Ese código ya existe','err');return}
+    alumnos.push({id:'a'+Date.now(),profId:currentUser.id,activo:true,...datos})
+    save('alumnos',alumnos)
+    toast('Alumno agregado ✓','ok')
+  }
+
   closeModal('m-nuevo-alumno')
-  toast('Alumno agregado ✓','ok')
   renderProfAlumnos()
   renderProf()
-  // Reset
-  ;['na-nombre','na-edad','na-grupo','na-codigo','na-obs'].forEach(id=>document.getElementById(id).value='')
+  resetAlumnoForm()
 }
+function resetAlumnoForm(){
+  alumnoEditando=null
+  document.getElementById('m-alumno-title').textContent='Agregar alumno'
+  document.getElementById('m-alumno-btn').textContent='Agregar alumno'
+  ;['na-nombre','na-edad','na-grupo','na-codigo','na-pago','na-obs'].forEach(id=>document.getElementById(id).value='')
+  document.getElementById('na-nivel').value='Avanzado'
+}
+function editarAlumno(id){
+  const al=getAlumnos().find(a=>a.id===id)
+  if(!al)return
+  alumnoEditando=id
+  document.getElementById('m-alumno-title').textContent='Editar alumno'
+  document.getElementById('m-alumno-btn').textContent='Guardar cambios'
+  document.getElementById('na-nombre').value=al.nombre||''
+  document.getElementById('na-edad').value=al.edad||''
+  document.getElementById('na-nivel').value=al.nivel||'Avanzado'
+  document.getElementById('na-grupo').value=al.grupo||''
+  document.getElementById('na-codigo').value=al.codigo||''
+  document.getElementById('na-pago').value=al.ultimoPago||''
+  document.getElementById('na-obs').value=al.obs||''
+  openModal('m-nuevo-alumno')
+}
+let rutinaEditando = null // id de rutina en edición, null = creando nueva
+
 function crearRutina(){
   const nombre=document.getElementById('nr-nombre').value.trim()
   if(!nombre){toast('Pon un nombre a la rutina','err');return}
@@ -766,23 +932,87 @@ function crearRutina(){
       const v=parseFloat(inputs[idx].value)
       return isNaN(v)?def:v
     }
+    // Conservar el id original del ejercicio si ya existía (para no perder historial de registros)
+    const idExistente=div.dataset.ejId
     return{
-      id:'e'+Date.now()+i,
+      id:idExistente||('e'+Date.now()+i),
       nombre:inputs[0].value.trim()||'Ejercicio '+(i+1),
       series:nVal(1,3),
       reps:nVal(2,10),
       rpe:nVal(3,7),
       descanso:nVal(4,60),
-      obs:inputs[5]?.value||''
+      cargaSugerida:isNaN(parseFloat(inputs[5].value))?null:parseFloat(inputs[5].value),
+      obs:inputs[6]?.value||'',
+      link:inputs[7]?.value.trim()||''
     }
   })
   const rutinas=getRutinas()
-  rutinas.push({id:'r'+Date.now(),profId:currentUser.id,nombre,dias,asignada:document.getElementById('nr-asignar').value,ejercicios})
-  save('rutinas',rutinas)
+  if(rutinaEditando){
+    const idx=rutinas.findIndex(r=>r.id===rutinaEditando)
+    if(idx>=0){
+      rutinas[idx]={...rutinas[idx],nombre,dias,asignada:document.getElementById('nr-asignar').value,ejercicios}
+    }
+    save('rutinas',rutinas)
+    toast('Rutina actualizada ✓','ok')
+  }else{
+    rutinas.push({id:'r'+Date.now(),profId:currentUser.id,nombre,dias,asignada:document.getElementById('nr-asignar').value,ejercicios})
+    save('rutinas',rutinas)
+    toast('Rutina creada ✓','ok')
+  }
   closeModal('m-nueva-rutina')
-  toast('Rutina creada ✓','ok')
   renderProfRutinas()
+  resetRutinaForm()
+}
+function resetRutinaForm(){
+  rutinaEditando=null
+  document.getElementById('m-rutina-title').textContent='Crear rutina'
+  document.getElementById('m-rutina-btn').textContent='Crear rutina'
   document.getElementById('nr-nombre').value=''
+  document.querySelectorAll('#dias-wrap .dia-btn').forEach(b=>b.classList.remove('on'))
+  // Dejar solo 1 ejercicio vacío
+  const list=document.getElementById('ej-builder-list')
+  list.innerHTML=''
+  addEj()
+}
+function editarRutina(id){
+  const rutina=getRutinas().find(r=>r.id===id)
+  if(!rutina)return
+  rutinaEditando=id
+  document.getElementById('m-rutina-title').textContent='Editar rutina'
+  document.getElementById('m-rutina-btn').textContent='Guardar cambios'
+  document.getElementById('nr-nombre').value=rutina.nombre
+
+  // Marcar días
+  document.querySelectorAll('#dias-wrap .dia-btn').forEach(b=>{
+    b.classList.toggle('on',rutina.dias.includes(b.textContent))
+  })
+
+  // Reconstruir ejercicios
+  const list=document.getElementById('ej-builder-list')
+  list.innerHTML=''
+  rutina.ejercicios.forEach(ej=>{
+    addEj()
+    const div=list.lastElementChild
+    div.dataset.ejId=ej.id
+    const inputs=div.querySelectorAll('input')
+    inputs[0].value=ej.nombre||''
+    inputs[1].value=ej.series ?? ''
+    inputs[2].value=ej.reps ?? ''
+    inputs[3].value=ej.rpe ?? ''
+    inputs[4].value=ej.descanso ?? ''
+    inputs[5].value=ej.cargaSugerida ?? ''
+    inputs[6].value=ej.obs||''
+    inputs[7].value=ej.link||''
+  })
+
+  // Asignación
+  const sel=document.getElementById('nr-asignar')
+  const alumnos=getAlumnos().filter(a=>a.profId===currentUser.id)
+  sel.innerHTML='<option value="todos">Todos los alumnos</option>'+
+    alumnos.map(a=>`<option value="${a.id}">${a.nombre}</option>`).join('')
+  sel.value=rutina.asignada||'todos'
+
+  openModal('m-nueva-rutina')
 }
 function eliminarRutina(id){
   const rutinas=getRutinas().filter(r=>r.id!==id)
@@ -822,7 +1052,11 @@ function addEj(){
       <input class="b-inp" placeholder="RPE obj." type="number" step="0.5">
       <input class="b-inp" placeholder="Desc.seg" type="number">
     </div>
-    <div class="b-row"><input class="b-inp" style="flex:1" placeholder="Obs. técnica"></div>`
+    <div class="b-row">
+      <input class="b-inp" placeholder="Carga sugerida (kg)" type="number" step="0.5">
+    </div>
+    <div class="b-row"><input class="b-inp" style="flex:1" placeholder="Obs. técnica"></div>
+    <div class="b-row"><input class="b-inp" style="flex:1" placeholder="Link o imagen del ejercicio (opcional)"></div>`
   document.getElementById('ej-builder-list').appendChild(d)
 }
 function rmEj(btn){
@@ -835,6 +1069,7 @@ function toggleDia(btn){btn.classList.toggle('on')}
 //  ALUMNO
 // ═══════════════════════════════════════════════════════════
 let ejState=[] // estado local de los ejercicios de la sesión
+let obsGeneral='' // observación general de la sesión (alumno)
 
 function alumTab(tab){
   ['hoy','hist','perf'].forEach(t=>document.getElementById('abt-'+t).classList.remove('on'))
@@ -865,6 +1100,10 @@ function renderAlumnoHoy(main){
         <div class="stat-v-wrap stat-box"><div class="stat-v" style="color:${colorRPE(regHoy.rpePromedio||7)}">${regHoy.rpePromedio||'—'}</div><div class="stat-l">RPE prom.</div></div>
         <div class="stat-box"><div class="stat-v" style="color:var(--accent2)">✓</div><div class="stat-l">Listo</div></div>
       </div>
+      ${regHoy.observacion?`<div class="card" style="width:100%;text-align:left;margin-bottom:.5rem">
+        <div style="font-size:.72rem;color:var(--text2);margin-bottom:.3rem">📝 Tu observación de hoy</div>
+        <div style="font-size:.85rem">${regHoy.observacion}</div>
+      </div>`:''}
       ${prof?.mpLink?`<div class="pago-banner" style="width:100%;margin-top:.5rem">
         <div style="flex:1"><div style="font-size:.82rem;font-weight:700">Membresía</div>
         <div style="font-size:.72rem;color:var(--text2)">${prof.precio||''}</div>
@@ -878,19 +1117,22 @@ function renderAlumnoHoy(main){
   }
 
   if(!rutina){
+    const nombreDia=new Date().toLocaleDateString('es-CL',{weekday:'long'})
     main.innerHTML=`<div class="empty" style="margin-top:3rem">
       <div class="empty-ico">🎉</div>
-      <div class="empty-txt">¡Día de descanso!<br>No tienes rutina para hoy.</div>
+      <div class="empty-txt">Hoy ${nombreDia} no tienes rutina asignada.<br>¡Aprovecha para descansar!</div>
       ${prof?.mpLink?`<div class="pago-banner" style="margin-top:1rem;text-align:left">
         <div style="flex:1"><div style="font-size:.82rem;font-weight:700">Tu membresía</div><div style="font-size:.72rem;color:var(--text2)">${prof.precio||''}</div></div>
         <a href="${prof.mpLink}" target="_blank" class="btn-pagar">Pagar →</a>
       </div>`:''}
+      <button onclick="alumTab('hist')" style="width:100%;margin-top:1rem;padding:.7rem;border:1px solid var(--border2);background:transparent;border-radius:var(--r);color:var(--text2);font-size:.85rem">Ver mi progreso →</button>
     </div>`;return
   }
 
   // Inicializar ejState si está vacío o es de otra rutina
   if(ejState.length===0||ejState[0]?.rutinaId!==rutina.id){
-    ejState=rutina.ejercicios.map(e=>({...e,rutinaId:rutina.id,done:false,carga:0,rpe:null,comentario:''}))
+    ejState=rutina.ejercicios.map(e=>({...e,rutinaId:rutina.id,done:false,carga:0,rpeFinal:null,comentario:''}))
+    obsGeneral=''
   }
 
   const done=ejState.filter(e=>e.done).length
@@ -910,6 +1152,10 @@ function renderAlumnoHoy(main){
     </div>
     <div class="prog-wrap"><div class="prog-fill" id="a-prog" style="width:${pct}%"></div></div>
     <div id="ejs-list"></div>
+    <div class="card" style="margin-top:.2rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.4rem">📝 Observación general de la sesión <span style="color:var(--text3);font-weight:400">(opcional)</span></div>
+      <textarea class="obs-inp" id="obs-general" rows="2" placeholder="¿Cómo te sentiste hoy? Dolor, energía, sueño, etc." oninput="setObsGeneral(this.value)" style="margin-bottom:0">${obsGeneral}</textarea>
+    </div>
     ${prof?.mpLink?`<div class="pago-banner">
       <div style="flex:1"><div style="font-size:.8rem;font-weight:700">Tu membresía · ${prof.precio||''}</div><div style="font-size:.7rem;color:var(--text2)">${prof.msg||''}</div></div>
       <a href="${prof.mpLink}" target="_blank" class="btn-pagar">Pagar →</a>
@@ -930,7 +1176,7 @@ function renderEjs(){
         <div style="flex:1">
           <div style="font-size:.88rem;font-weight:700">${ej.nombre}</div>
           ${!isActive?`<div style="font-size:.72rem;color:var(--text2)">${ej.series}×${ej.reps} · RPE obj. ${ej.rpe}</div>`:''}
-          ${ej.done&&ej.carga?`<div style="font-size:.72rem;color:var(--green)">${ej.carga} kg · RPE ${ej.rpe}</div>`:''}
+          ${ej.done&&ej.carga?`<div style="font-size:.72rem;color:var(--green)">${ej.carga} kg · RPE ${ej.rpeFinal}</div>`:''}
           ${ej.obs?`<div style="font-size:.68rem;color:var(--text3);font-style:italic;margin-top:1px">📋 ${ej.obs}</div>`:''}
         </div>
         ${ej.done?'<span class="pill pill-green">✓</span>':''}
@@ -941,24 +1187,26 @@ function renderEjs(){
           <span class="spec">${ej.reps} reps</span>
           <span class="spec">RPE obj. ${ej.rpe}</span>
           <span class="spec">Desc. ${ej.descanso}s</span>
+          ${ej.cargaSugerida!=null?`<span class="spec" style="color:var(--gold2);border:1px solid #f5c51833">Sugerida: ${ej.cargaSugerida} kg</span>`:''}
         </div>
+        ${ej.link?`<a href="${ej.link}" target="_blank" class="btn-ej-link">🔗 Ver técnica / referencia del ejercicio</a>`:''}
         <div style="font-size:.72rem;color:var(--text2);margin-bottom:.4rem">Carga usada (kg)</div>
         <div class="carga-row">
           <button class="pm-btn" onclick="ajustarCarga('${ej.id}',-2.5)">−</button>
-          <input class="carga-inp" type="number" value="${ej.carga||''}" placeholder="0" oninput="setCarga('${ej.id}',this.value)" min="0">
+          <input class="carga-inp" type="number" value="${ej.carga||''}" placeholder="${ej.cargaSugerida!=null?ej.cargaSugerida:'0'}" oninput="setCarga('${ej.id}',this.value)" min="0">
           <button class="pm-btn" onclick="ajustarCarga('${ej.id}',2.5)">+</button>
         </div>
         <div style="font-size:.72rem;color:var(--text2);margin-bottom:.4rem">RPE final <span style="color:var(--text3)">(objetivo: ${ej.rpe})</span></div>
         <div class="rpe-grid">
           ${[1,2,3,4,5,6,7,8,9,10].map(n=>{
-            const sel=ejState.find(e=>e.id===ej.id)?.rpe===n
+            const sel=ejState.find(e=>e.id===ej.id)?.rpeFinal===n
             const cls=sel?(n<=6?'sel-g':n<=8?'sel-y':'sel-r'):''
             return `<button class="rpe-btn ${cls}" onclick="setRpe('${ej.id}',${n})">${n}</button>`
           }).join('')}
         </div>
         <textarea class="obs-inp" rows="2" placeholder="Comentario breve (opcional)..." oninput="setObs('${ej.id}',this.value)">${ej.comentario}</textarea>
-        <button class="${ejState.find(e=>e.id===ej.id)?.rpe?'btn-completar':'btn-completar'}" ${ejState.find(e=>e.id===ej.id)?.rpe?'':'disabled'} onclick="completarEj('${ej.id}')">
-          ${ejState.find(e=>e.id===ej.id)?.rpe?'Marcar como completado ✓':'Selecciona un RPE para continuar'}
+        <button class="${ejState.find(e=>e.id===ej.id)?.rpeFinal?'btn-completar':'btn-completar'}" ${ejState.find(e=>e.id===ej.id)?.rpeFinal?'':'disabled'} onclick="completarEj('${ej.id}')">
+          ${ejState.find(e=>e.id===ej.id)?.rpeFinal?'Marcar como completado ✓':'Selecciona un RPE para continuar'}
         </button>
       </div>`:''}
     </div>`
@@ -973,25 +1221,27 @@ function ajustarCarga(id,delta){
 function setCarga(id,v){const e=ejState.find(x=>x.id===id);if(e)e.carga=parseFloat(v)||0}
 function setRpe(id,n){
   const e=ejState.find(x=>x.id===id);if(!e)return
-  e.rpe=n;renderEjs()
+  e.rpeFinal=n;renderEjs()
 }
 function setObs(id,v){const e=ejState.find(x=>x.id===id);if(e)e.comentario=v}
+function setObsGeneral(v){obsGeneral=v}
 function completarEj(id){
-  const e=ejState.find(x=>x.id===id);if(!e||!e.rpe)return
+  const e=ejState.find(x=>x.id===id);if(!e||!e.rpeFinal)return
   e.done=true
   toast(`${e.nombre} ✓`,'ok')
   // ¿Todos listos?
   if(ejState.every(e=>e.done)){
-    const rpeProm=Math.round(ejState.filter(e=>e.rpe).reduce((s,e)=>s+e.rpe,0)/ejState.filter(e=>e.rpe).length*10)/10
+    const rpeProm=Math.round(ejState.filter(e=>e.rpeFinal).reduce((s,e)=>s+e.rpeFinal,0)/ejState.filter(e=>e.rpeFinal).length*10)/10
     const regs=getRegistros()
     regs.push({
       id:'reg'+Date.now(),alumnoId:currentUser.id,
       rutinaId:ejState[0]?.rutinaId,fecha:hoy(),
-      completado:true,rpePromedio:rpeProm,
-      ejercicios:ejState.map(e=>({ejId:e.id,carga:e.carga,rpe:e.rpe,comentario:e.comentario}))
+      completado:true,rpePromedio:rpeProm,observacion:obsGeneral,
+      ejercicios:ejState.map(e=>({ejId:e.id,nombre:e.nombre,carga:e.carga,rpe:e.rpeFinal,comentario:e.comentario}))
     })
     save('registros',regs)
     ejState=[]
+    obsGeneral=''
     alumTab('hoy')
     return
   }
@@ -1000,6 +1250,7 @@ function completarEj(id){
   renderEjs()
 }
 function renderAlumnoHist(main){
+  const prof=getProfesores().find(p=>p.id===currentUser.profId)
   const regs=getRegistros().filter(r=>r.alumnoId===currentUser.id).sort((a,b)=>b.fecha.localeCompare(a.fecha))
   const dias=['D','L','M','X','J','V','S']
   const semana=Array.from({length:7},(_,i)=>{
@@ -1011,7 +1262,102 @@ function renderAlumnoHist(main){
   const cumpl=regs.filter(r=>r.completado).length
   const rpeAll=regs.filter(r=>r.rpePromedio).map(r=>r.rpePromedio)
   const rpeProm=rpeAll.length?Math.round(rpeAll.reduce((s,v)=>s+v,0)/rpeAll.length*10)/10:null
+
+  // ── Membresía: cuenta regresiva ──
+  const diasMem=diasParaVencer(currentUser.ultimoPago)
+  const vencMem=fechaVencimiento(currentUser.ultimoPago)
+  let memHtml=''
+  if(diasMem!==null){
+    const estado=estadoMembresia(currentUser.ultimoPago)
+    const col=estado==='vencido'?'var(--red)':estado==='proximo'?'var(--yellow)':'var(--green)'
+    const bgCol=estado==='vencido'?'var(--redbg)':estado==='proximo'?'var(--yellowbg)':'var(--greenbg)'
+    const texto=diasMem<0?`Venció hace ${Math.abs(diasMem)} día${Math.abs(diasMem)!==1?'s':''}`
+      :diasMem===0?'Vence hoy':`${diasMem} día${diasMem!==1?'s':''} restante${diasMem!==1?'s':''}`
+    memHtml=`<div class="card" style="background:${bgCol};border-color:${col}33">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:.78rem;color:var(--text2);margin-bottom:.2rem">💳 Tu membresía</div>
+          <div style="font-size:1.2rem;font-weight:800;color:${col}">${texto}</div>
+          <div style="font-size:.72rem;color:var(--text2);margin-top:.2rem">Vence: ${fFecha(vencMem)}</div>
+        </div>
+        ${prof?.mpLink?`<a href="${prof.mpLink}" target="_blank" class="btn-pagar">Pagar →</a>`:''}
+      </div>
+    </div>`
+  }
+
+  // ── Pesos y volumen por ejercicio ──
+  // Recolectar todos los ejercicios registrados con carga > 0, agrupados por nombre
+  const porEjercicio={}
+  regs.forEach(r=>{
+    ;(r.ejercicios||[]).forEach(re=>{
+      if(!re.carga||re.carga<=0)return
+      const nombre=re.nombre||'Ejercicio'
+      if(!porEjercicio[nombre])porEjercicio[nombre]=[]
+      porEjercicio[nombre].push({fecha:r.fecha,carga:re.carga,rpe:re.rpe})
+    })
+  })
+  const nombresEj=Object.keys(porEjercicio)
+
+  let pesosHtml=''
+  if(nombresEj.length>0){
+    pesosHtml=`<div class="sec-title">Pesos trabajados (kg)</div>`
+    nombresEj.forEach(nombre=>{
+      const serie=porEjercicio[nombre].sort((a,b)=>a.fecha.localeCompare(b.fecha))
+      const ultimo=serie[serie.length-1]
+      const anterior=serie.length>1?serie[serie.length-2]:null
+      const max=Math.max(...serie.map(s=>s.carga))
+      const diff=anterior?ultimo.carga-anterior.carga:0
+      const diffTxt=diff>0?`+${diff} kg`:diff<0?`${diff} kg`:'sin cambio'
+      const diffCol=diff>0?'var(--green)':diff<0?'var(--red)':'var(--text2)'
+      pesosHtml+=`<div class="card" style="margin-bottom:.5rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+          <div style="font-weight:700;font-size:.85rem">${nombre}</div>
+          <span class="pill pill-accent">${ultimo.carga} kg</span>
+        </div>
+        <div style="display:flex;gap:.5rem;font-size:.72rem;color:var(--text2)">
+          <span>Máx: <strong style="color:var(--text)">${max} kg</strong></span>
+          <span>·</span>
+          <span>Últ. cambio: <strong style="color:${diffCol}">${diffTxt}</strong></span>
+          <span>·</span>
+          <span>${serie.length} registro${serie.length!==1?'s':''}</span>
+        </div>
+      </div>`
+    })
+  }
+
+  // ── Volumen total por sesión (suma de carga × series × reps de cada ejercicio) ──
+  const volumenPorSesion=regs.filter(r=>r.completado).map(r=>{
+    const vol=(r.ejercicios||[]).reduce((s,re)=>{
+      // Buscar series/reps originales de la rutina para estimar volumen
+      const rutina=getRutinas().find(rt=>rt.id===r.rutinaId)
+      const ejOrig=rutina?.ejercicios?.find(e=>e.id===re.ejId)
+      const series=ejOrig?.series||3
+      const reps=ejOrig?.reps||10
+      return s+((re.carga||0)*series*reps)
+    },0)
+    return{fecha:r.fecha,vol:Math.round(vol)}
+  }).slice(0,8).reverse()
+
+  let volumenHtml=''
+  if(volumenPorSesion.length>0){
+    const maxVol=Math.max(...volumenPorSesion.map(v=>v.vol),1)
+    volumenHtml=`<div class="sec-title">Volumen por sesión (kg totales)</div>
+    <div class="card">
+      <div style="display:flex;align-items:flex-end;gap:.4rem;height:90px">
+        ${volumenPorSesion.map(v=>{
+          const h=Math.max(6,Math.round(v.vol/maxVol*80))
+          return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:.3rem">
+            <div style="font-size:.6rem;color:var(--text2)">${(v.vol/1000).toFixed(1)}t</div>
+            <div style="width:100%;height:${h}px;background:linear-gradient(180deg,var(--accent2),var(--accent));border-radius:4px 4px 2px 2px"></div>
+            <div style="font-size:.6rem;color:var(--text3)">${fFecha(v.fecha).slice(0,5)}</div>
+          </div>`
+        }).join('')}
+      </div>
+    </div>`
+  }
+
   main.innerHTML=`
+    ${memHtml}
     <div class="sec-title">Esta semana</div>
     <div class="card"><div class="week-row">${semana.map(d=>`<div class="day-c">
       <div class="day-lbl">${d.dia}</div>
@@ -1021,6 +1367,8 @@ function renderAlumnoHist(main){
       <div class="metric"><div class="metric-lbl">Sesiones totales</div><div class="metric-val" style="color:var(--green)">${cumpl}</div></div>
       <div class="metric"><div class="metric-lbl">RPE promedio</div><div class="metric-val" style="color:${rpeProm?colorRPE(rpeProm):'var(--text)'}">${rpeProm||'—'}</div></div>
     </div>
+    ${volumenHtml}
+    ${pesosHtml}
     <div class="sec-title">Últimos registros</div>
     ${regs.slice(0,5).map(r=>`<div class="card" style="margin-bottom:.5rem">
       <div style="display:flex;justify-content:space-between;align-items:center">
@@ -1028,12 +1376,16 @@ function renderAlumnoHist(main){
         <div class="card-sub">${r.ejercicios?.length||0} ejercicios</div></div>
         <span class="pill ${pillRPE(r.rpePromedio||7)}">RPE ${r.rpePromedio}</span>
       </div>
+      ${r.observacion?`<div style="font-size:.75rem;color:var(--text2);margin-top:.4rem;font-style:italic">📝 ${r.observacion}</div>`:''}
     </div>`).join('')||'<div class="empty"><div class="empty-ico">📝</div><div class="empty-txt">Sin registros aún</div></div>'}
     <button onclick="alumTab('hoy')" style="width:100%;margin-top:.5rem;padding:.7rem;border:1px solid var(--border2);background:transparent;border-radius:var(--r);color:var(--text2);font-size:.85rem">← Volver a mi rutina</button>
   `
 }
 function renderAlumnoPerfil(main){
   const prof=getProfesores().find(p=>p.id===currentUser.profId)
+  const estado=estadoMembresia(currentUser.ultimoPago)
+  const col=estado==='vencido'?'var(--red)':estado==='proximo'?'var(--yellow)':estado==='ok'?'var(--green)':'var(--text2)'
+  const txt=estado==='vencido'?'Vencida':estado==='proximo'?'Por vencer':estado==='ok'?'Al día':'Sin datos'
   main.innerHTML=`
     <div class="card">
       <div style="display:flex;align-items:center;gap:.85rem;margin-bottom:1rem">
@@ -1046,7 +1398,7 @@ function renderAlumnoPerfil(main){
       <div style="height:1px;background:var(--border2);margin:.75rem 0"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
         <div class="ps"><div class="ps-v" style="color:var(--accent2)">${currentUser.nivel||'—'}</div><div class="ps-l">Nivel</div></div>
-        <div class="ps"><div class="ps-v" style="color:${currentUser.pagado?'var(--green)':'var(--red)'}">${currentUser.pagado?'Al día':'Pendiente'}</div><div class="ps-l">Membresía</div></div>
+        <div class="ps"><div class="ps-v" style="color:${col}">${txt}</div><div class="ps-l">Membresía</div></div>
       </div>
     </div>
     ${prof?.mpLink?`<div class="pago-banner">
