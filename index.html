@@ -165,6 +165,8 @@ button{cursor:pointer}
 .b-inp:focus{border-color:var(--accent)}
 .b-inp::placeholder{color:var(--text3)}
 .btn-add-ej{width:100%;padding:.65rem;border:1px dashed var(--border3);background:transparent;border-radius:var(--r);color:var(--text2);font-size:.82rem;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:.4rem}
+.btn-img-upload{display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.55rem .6rem;border:1px dashed var(--border3);background:transparent;border-radius:var(--r);color:var(--text2);font-size:.78rem;cursor:pointer;transition:all .15s}
+.btn-img-upload:hover{border-color:var(--accent);color:var(--accent2);background:var(--accentbg)}
 .btn-add-ej:hover{border-color:var(--accent);color:var(--accent2);background:var(--accentbg)}
 .btn-rm{position:absolute;top:.7rem;right:.7rem;width:24px;height:24px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text3);font-size:.85rem;display:flex;align-items:center;justify-content:center;transition:all .12s}
 .btn-rm:hover{background:var(--redbg);color:var(--red);border-color:#ef444433}
@@ -502,7 +504,15 @@ select.inp{appearance:none;-webkit-appearance:none}
           <input class="b-inp" placeholder="Carga sugerida (kg)" type="number" step="0.5">
         </div>
         <div class="b-row"><input class="b-inp" style="flex:1" placeholder="Obs. técnica (opcional)"></div>
-        <div class="b-row"><input class="b-inp" style="flex:1" placeholder="Link o imagen del ejercicio (opcional)"></div>
+        <div class="b-row"><input class="b-inp ej-link-inp" style="flex:1" placeholder="Link de video / técnica (YouTube, etc. — opcional)"></div>
+        <div class="b-row" style="align-items:center;gap:.5rem">
+          <label class="btn-img-upload" style="flex:1">
+            📷 Subir imagen del ejercicio
+            <input type="file" accept="image/*" class="ej-img-inp" style="display:none" onchange="previewEjImg(this)">
+          </label>
+          <img class="ej-img-preview" style="display:none;height:40px;width:40px;object-fit:cover;border-radius:8px;border:1px solid var(--border2)">
+          <button type="button" class="btn-rm ej-img-clear" style="display:none;position:static" onclick="clearEjImg(this)">×</button>
+        </div>
       </div>
     </div>
     <button class="btn-add-ej" onclick="addEj()">+ Ejercicio</button>
@@ -938,13 +948,15 @@ function crearRutina(){
   if(!nombre){toast('Pon un nombre a la rutina','err');return}
   const dias=[...document.querySelectorAll('#dias-wrap .dia-btn.on')].map(b=>b.textContent)
   const ejercicios=[...document.querySelectorAll('#ej-builder-list .ej-builder')].map((div,i)=>{
-    const inputs=div.querySelectorAll('input')
+    const inputs=div.querySelectorAll('input:not([type="file"])')
     const nVal=(idx,def)=>{
       const v=parseFloat(inputs[idx].value)
       return isNaN(v)?def:v
     }
     // Conservar el id original del ejercicio si ya existía (para no perder historial de registros)
     const idExistente=div.dataset.ejId
+    const imgPreview=div.querySelector('.ej-img-preview')
+    const imagenBase64=imgPreview?.dataset.base64||''
     return{
       id:idExistente||('e'+Date.now()+i),
       nombre:inputs[0].value.trim()||'Ejercicio '+(i+1),
@@ -954,7 +966,8 @@ function crearRutina(){
       descanso:nVal(4,60),
       cargaSugerida:isNaN(parseFloat(inputs[5].value))?null:parseFloat(inputs[5].value),
       obs:inputs[6]?.value||'',
-      link:inputs[7]?.value.trim()||''
+      link:div.querySelector('.ej-link-inp')?.value.trim()||'',
+      imagen:imagenBase64
     }
   })
   const rutinas=getRutinas()
@@ -1005,7 +1018,7 @@ function editarRutina(id){
     addEj()
     const div=list.lastElementChild
     div.dataset.ejId=ej.id
-    const inputs=div.querySelectorAll('input')
+    const inputs=div.querySelectorAll('input:not([type="file"])')
     inputs[0].value=ej.nombre||''
     inputs[1].value=ej.series ?? ''
     inputs[2].value=ej.reps ?? ''
@@ -1013,7 +1026,18 @@ function editarRutina(id){
     inputs[4].value=ej.descanso ?? ''
     inputs[5].value=ej.cargaSugerida ?? ''
     inputs[6].value=ej.obs||''
-    inputs[7].value=ej.link||''
+    const linkInp=div.querySelector('.ej-link-inp')
+    if(linkInp)linkInp.value=ej.link||''
+    // Precargar preview de imagen si existe
+    if(ej.imagen){
+      const img=div.querySelector('.ej-img-preview')
+      const clearBtn=div.querySelector('.ej-img-clear')
+      img.src=ej.imagen
+      img.style.display='block'
+      img.dataset.base64=ej.imagen
+      clearBtn.style.display='flex'
+      div.querySelector('.btn-img-upload').style.flex='0 0 auto'
+    }
   })
 
   // Asignación
@@ -1068,7 +1092,15 @@ function addEj(){
       <input class="b-inp" placeholder="Carga sugerida (kg)" type="number" step="0.5">
     </div>
     <div class="b-row"><input class="b-inp" style="flex:1" placeholder="Obs. técnica"></div>
-    <div class="b-row"><input class="b-inp" style="flex:1" placeholder="Link o imagen del ejercicio (opcional)"></div>`
+    <div class="b-row"><input class="b-inp ej-link-inp" style="flex:1" placeholder="Link de video / técnica (YouTube, etc. — opcional)"></div>
+    <div class="b-row" style="align-items:center;gap:.5rem">
+      <label class="btn-img-upload" style="flex:1">
+        📷 Subir imagen del ejercicio
+        <input type="file" accept="image/*" class="ej-img-inp" style="display:none" onchange="previewEjImg(this)">
+      </label>
+      <img class="ej-img-preview" style="display:none;height:40px;width:40px;object-fit:cover;border-radius:8px;border:1px solid var(--border2)">
+      <button type="button" class="btn-rm ej-img-clear" style="display:none;position:static" onclick="clearEjImg(this)">×</button>
+    </div>`
   document.getElementById('ej-builder-list').appendChild(d)
 }
 function rmEj(btn){
@@ -1076,6 +1108,34 @@ function rmEj(btn){
   else toast('Mínimo 1 ejercicio','err')
 }
 function toggleDia(btn){btn.classList.toggle('on')}
+
+// ── Manejo de imagen de ejercicio (preview + base64) ──
+function previewEjImg(input){
+  const file=input.files?.[0]
+  if(!file)return
+  if(file.size>1024*1024){toast('La imagen es muy pesada (máx. 1MB)','err');input.value='';return}
+  const reader=new FileReader()
+  reader.onload=e=>{
+    const builder=input.closest('.ej-builder')
+    const img=builder.querySelector('.ej-img-preview')
+    const clearBtn=builder.querySelector('.ej-img-clear')
+    img.src=e.target.result
+    img.style.display='block'
+    img.dataset.base64=e.target.result
+    clearBtn.style.display='flex'
+    builder.querySelector('.btn-img-upload').style.flex='0 0 auto'
+  }
+  reader.readAsDataURL(file)
+}
+function clearEjImg(btn){
+  const builder=btn.closest('.ej-builder')
+  const img=builder.querySelector('.ej-img-preview')
+  const fileInp=builder.querySelector('.ej-img-inp')
+  img.src='';img.style.display='none';delete img.dataset.base64
+  fileInp.value=''
+  btn.style.display='none'
+  builder.querySelector('.btn-img-upload').style.flex='1'
+}
 
 // ═══════════════════════════════════════════════════════════
 //  ALUMNO
@@ -1268,6 +1328,7 @@ function renderEjs(){
           <span class="spec">Desc. ${ej.descanso}s</span>
           ${ej.cargaSugerida!=null?`<span class="spec" style="color:var(--gold2);border:1px solid #f5c51833">Sugerida: ${ej.cargaSugerida} kg</span>`:''}
         </div>
+        ${ej.imagen?`<img src="${ej.imagen}" alt="${ej.nombre}" style="width:100%;max-height:180px;object-fit:cover;border-radius:var(--r);margin-bottom:.6rem;border:1px solid var(--border2)">`:''}
         ${ej.link?`<a href="${ej.link}" target="_blank" class="btn-ej-link">🔗 Ver técnica / referencia del ejercicio</a>`:''}
         <div style="font-size:.72rem;color:var(--text2);margin-bottom:.4rem">Carga usada (kg)</div>
         <div class="carga-row">
