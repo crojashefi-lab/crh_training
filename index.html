@@ -1070,6 +1070,7 @@ function toggleDia(btn){btn.classList.toggle('on')}
 // ═══════════════════════════════════════════════════════════
 let ejState=[] // estado local de los ejercicios de la sesión
 let obsGeneral='' // observación general de la sesión (alumno)
+let rutinaSeleccionada=null // id de la rutina elegida en el selector del alumno
 
 function alumTab(tab){
   ['hoy','hist','perf'].forEach(t=>document.getElementById('abt-'+t).classList.remove('on'))
@@ -1080,13 +1081,16 @@ function alumTab(tab){
   else renderAlumnoPerfil(main)
 }
 
+// Mapeo de código de día a nombre completo
+const NOMBRE_DIA={L:'Lunes',M:'Martes',X:'Miércoles',J:'Jueves',V:'Viernes',S:'Sábado',D:'Domingo'}
+
 function renderAlumnoHoy(main){
   if(!currentUser)return
-  // Buscar rutina de hoy
   const prof=getProfesores().find(p=>p.id===currentUser.profId)
   const diasHoy=['D','L','M','X','J','V','S'][new Date().getDay()]
-  const rutinas=getRutinas().filter(r=>r.profId===currentUser.profId&&(r.asignada==='todos'||r.asignada===currentUser.id)&&r.dias.includes(diasHoy))
-  const rutina=rutinas[0]
+
+  // Todas las rutinas asignadas a este alumno (cualquier día de su semana)
+  const todasRutinas=getRutinas().filter(r=>r.profId===currentUser.profId&&(r.asignada==='todos'||r.asignada===currentUser.id))
 
   // ¿Ya hay registro completado hoy?
   const regHoy=getRegistros().find(r=>r.alumnoId===currentUser.id&&r.fecha===hoy()&&r.completado)
@@ -1094,9 +1098,10 @@ function renderAlumnoHoy(main){
     main.innerHTML=`<div class="comp-wrap fade-up">
       <div class="comp-icon">✓</div>
       <div class="comp-title">¡Sesión completada!</div>
-      <div style="color:var(--text2);font-size:.85rem;margin-top:.25rem">${rutina?.nombre||'Sesión de hoy'}</div>
+      <div style="color:var(--text2);font-size:.85rem;margin-top:.25rem">${regHoy.rutinaNombre||'Sesión de hoy'}</div>
+      ${regHoy.recuperada?`<div style="font-size:.7rem;color:var(--gold2);margin-top:2px">📅 Sesión recuperada</div>`:''}
       <div class="stats-row">
-        <div class="stat-box"><div class="stat-v" style="color:var(--green)">${regHoy.ejercicios?.length||0}/${rutina?.ejercicios?.length||0}</div><div class="stat-l">Ejercicios</div></div>
+        <div class="stat-box"><div class="stat-v" style="color:var(--green)">${regHoy.ejercicios?.length||0}</div><div class="stat-l">Ejercicios</div></div>
         <div class="stat-v-wrap stat-box"><div class="stat-v" style="color:${colorRPE(regHoy.rpePromedio||7)}">${regHoy.rpePromedio||'—'}</div><div class="stat-l">RPE prom.</div></div>
         <div class="stat-box"><div class="stat-v" style="color:var(--accent2)">✓</div><div class="stat-l">Listo</div></div>
       </div>
@@ -1116,40 +1121,85 @@ function renderAlumnoHoy(main){
     return
   }
 
-  if(!rutina){
-    const nombreDia=new Date().toLocaleDateString('es-CL',{weekday:'long'})
+  // Sin ninguna rutina asignada (nunca, ningún día)
+  if(todasRutinas.length===0){
     main.innerHTML=`<div class="empty" style="margin-top:3rem">
-      <div class="empty-ico">🎉</div>
-      <div class="empty-txt">Hoy ${nombreDia} no tienes rutina asignada.<br>¡Aprovecha para descansar!</div>
+      <div class="empty-ico">📋</div>
+      <div class="empty-txt">Tu profesor aún no te ha asignado rutinas.</div>
       ${prof?.mpLink?`<div class="pago-banner" style="margin-top:1rem;text-align:left">
         <div style="flex:1"><div style="font-size:.82rem;font-weight:700">Tu membresía</div><div style="font-size:.72rem;color:var(--text2)">${prof.precio||''}</div></div>
         <a href="${prof.mpLink}" target="_blank" class="btn-pagar">Pagar →</a>
       </div>`:''}
-      <button onclick="alumTab('hist')" style="width:100%;margin-top:1rem;padding:.7rem;border:1px solid var(--border2);background:transparent;border-radius:var(--r);color:var(--text2);font-size:.85rem">Ver mi progreso →</button>
     </div>`;return
   }
 
-  // Inicializar ejState si está vacío o es de otra rutina
-  if(ejState.length===0||ejState[0]?.rutinaId!==rutina.id){
-    ejState=rutina.ejercicios.map(e=>({...e,rutinaId:rutina.id,done:false,carga:0,rpeFinal:null,comentario:''}))
+  // Rutina del día (si existe). Si no, dejar sin selección automática.
+  const rutinaHoy=todasRutinas.find(r=>r.dias.includes(diasHoy))
+
+  // Determinar rutina seleccionada actualmente
+  let rutinaSel=todasRutinas.find(r=>r.id===rutinaSeleccionada)
+  if(!rutinaSel){
+    rutinaSel=rutinaHoy||null
+    rutinaSeleccionada=rutinaSel?.id||null
+  }
+
+  // Inicializar ejState si cambia la rutina seleccionada
+  if(rutinaSel&&(ejState.length===0||ejState[0]?.rutinaId!==rutinaSel.id)){
+    ejState=rutinaSel.ejercicios.map(e=>({...e,rutinaId:rutinaSel.id,done:false,carga:0,rpeFinal:null,comentario:''}))
     obsGeneral=''
+  }
+
+  // Selector de sesión de la semana
+  const selectorHtml=`<div class="m-field" style="margin-bottom:.75rem">
+    <label>Sesión a realizar</label>
+    <select class="inp" id="sel-sesion" onchange="cambiarSesion(this.value)">
+      ${rutinaHoy?'':'<option value="">— Elige una sesión —</option>'}
+      ${todasRutinas.map(r=>{
+        const diasTxt=r.dias.map(d=>NOMBRE_DIA[d]?.slice(0,3)).join('/')
+        const esHoy=r.id===rutinaHoy?.id
+        return `<option value="${r.id}" ${rutinaSel?.id===r.id?'selected':''}>${r.nombre} (${diasTxt})${esHoy?' · Hoy':''}</option>`
+      }).join('')}
+    </select>
+  </div>`
+
+  if(!rutinaSel){
+    const nombreDia=NOMBRE_DIA[diasHoy]
+    main.innerHTML=`
+      <div style="margin-bottom:.4rem">
+        <div style="font-size:.75rem;color:var(--text2)">${new Date().toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'})}</div>
+        <div style="font-size:1rem;font-weight:800;letter-spacing:-.3px;margin-top:1px">Sin rutina para hoy</div>
+      </div>
+      <div class="empty" style="padding:1.5rem 1rem">
+        <div class="empty-ico">🎉</div>
+        <div class="empty-txt">Hoy ${nombreDia} no tienes rutina programada.<br>Si quieres ponerte al día con otra sesión, elígela abajo.</div>
+      </div>
+      ${selectorHtml}
+      ${prof?.mpLink?`<div class="pago-banner">
+        <div style="flex:1"><div style="font-size:.8rem;font-weight:700">Tu membresía · ${prof.precio||''}</div><div style="font-size:.7rem;color:var(--text2)">${prof.msg||''}</div></div>
+        <a href="${prof.mpLink}" target="_blank" class="btn-pagar">Pagar →</a>
+      </div>`:''}
+    `
+    return
   }
 
   const done=ejState.filter(e=>e.done).length
   const total=ejState.length
   const pct=total>0?done/total*100:0
+  const esOtroDia=!rutinaHoy||rutinaSel.id!==rutinaHoy.id
 
   main.innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.4rem">
       <div>
         <div style="font-size:.75rem;color:var(--text2)">${new Date().toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'})}</div>
-        <div style="font-size:1rem;font-weight:800;letter-spacing:-.3px;margin-top:1px">${rutina.nombre}</div>
+        <div style="font-size:1rem;font-weight:800;letter-spacing:-.3px;margin-top:1px">${rutinaSel.nombre}</div>
+        ${esOtroDia?`<div style="font-size:.7rem;color:var(--gold2);margin-top:2px">📅 Sesión de otro día — recuperando</div>`:''}
       </div>
       <div style="text-align:right;flex-shrink:0">
         <div style="font-size:1.1rem;font-weight:800;color:var(--accent2)">${done}/${total}</div>
         <div style="font-size:.65rem;color:var(--text3)">completados</div>
       </div>
     </div>
+    ${todasRutinas.length>1?selectorHtml:''}
     <div class="prog-wrap"><div class="prog-fill" id="a-prog" style="width:${pct}%"></div></div>
     <div id="ejs-list"></div>
     <div class="card" style="margin-top:.2rem">
@@ -1162,6 +1212,16 @@ function renderAlumnoHoy(main){
     </div>`:''}
   `
   renderEjs()
+}
+function cambiarSesion(rutinaId){
+  if(!rutinaId){rutinaSeleccionada=null;ejState=[];renderAlumnoHoy(document.getElementById('alum-main'));return}
+  rutinaSeleccionada=rutinaId
+  const rutina=getRutinas().find(r=>r.id===rutinaId)
+  if(rutina){
+    ejState=rutina.ejercicios.map(e=>({...e,rutinaId:rutina.id,done:false,carga:0,rpeFinal:null,comentario:''}))
+    obsGeneral=''
+  }
+  renderAlumnoHoy(document.getElementById('alum-main'))
 }
 
 function renderEjs(){
@@ -1232,16 +1292,21 @@ function completarEj(id){
   // ¿Todos listos?
   if(ejState.every(e=>e.done)){
     const rpeProm=Math.round(ejState.filter(e=>e.rpeFinal).reduce((s,e)=>s+e.rpeFinal,0)/ejState.filter(e=>e.rpeFinal).length*10)/10
+    const rutinaSel=getRutinas().find(r=>r.id===ejState[0]?.rutinaId)
+    const diasHoy=['D','L','M','X','J','V','S'][new Date().getDay()]
+    const esOtroDia=rutinaSel&&!rutinaSel.dias.includes(diasHoy)
     const regs=getRegistros()
     regs.push({
       id:'reg'+Date.now(),alumnoId:currentUser.id,
-      rutinaId:ejState[0]?.rutinaId,fecha:hoy(),
+      rutinaId:ejState[0]?.rutinaId,rutinaNombre:rutinaSel?.nombre||'',fecha:hoy(),
       completado:true,rpePromedio:rpeProm,observacion:obsGeneral,
+      recuperada:!!esOtroDia,
       ejercicios:ejState.map(e=>({ejId:e.id,nombre:e.nombre,carga:e.carga,rpe:e.rpeFinal,comentario:e.comentario}))
     })
     save('registros',regs)
     ejState=[]
     obsGeneral=''
+    rutinaSeleccionada=null
     alumTab('hoy')
     return
   }
@@ -1372,8 +1437,10 @@ function renderAlumnoHist(main){
     <div class="sec-title">Últimos registros</div>
     ${regs.slice(0,5).map(r=>`<div class="card" style="margin-bottom:.5rem">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <div><div style="font-weight:700;font-size:.85rem">${fFecha(r.fecha)}</div>
-        <div class="card-sub">${r.ejercicios?.length||0} ejercicios</div></div>
+        <div>
+          <div style="font-weight:700;font-size:.85rem">${fFecha(r.fecha)}${r.recuperada?' <span style="color:var(--gold2);font-size:.7rem">📅 recuperada</span>':''}</div>
+          <div class="card-sub">${r.rutinaNombre?r.rutinaNombre+' · ':''}${r.ejercicios?.length||0} ejercicios</div>
+        </div>
         <span class="pill ${pillRPE(r.rpePromedio||7)}">RPE ${r.rpePromedio}</span>
       </div>
       ${r.observacion?`<div style="font-size:.75rem;color:var(--text2);margin-top:.4rem;font-style:italic">📝 ${r.observacion}</div>`:''}
