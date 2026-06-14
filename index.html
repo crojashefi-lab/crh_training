@@ -508,7 +508,10 @@ select.inp{appearance:none;-webkit-appearance:none}
     <button class="btn-add-ej" onclick="addEj()">+ Ejercicio</button>
     <div style="margin:.75rem 0"></div>
     <div class="m-field"><label>Asignar a</label>
-      <select class="inp" id="nr-asignar"><option value="todos">Todos los alumnos</option></select>
+      <select class="inp" id="nr-asignar">
+        <option value="">— Sin asignar (borrador) —</option>
+        <option value="todos">Todos los alumnos</option>
+      </select>
     </div>
     <button class="btn-main" style="margin-top:.5rem" id="m-rutina-btn" onclick="crearRutina()">Crear rutina</button>
   </div>
@@ -519,7 +522,10 @@ select.inp{appearance:none;-webkit-appearance:none}
     <div class="modal-handle"></div>
     <div class="modal-title" id="m-asignar-title">Asignar rutina</div>
     <div class="m-field"><label>Asignar a</label>
-      <select class="inp" id="as-alumnos"><option value="todos">Todos los alumnos</option></select>
+      <select class="inp" id="as-alumnos">
+        <option value="">— Sin asignar (borrador) —</option>
+        <option value="todos">Todos los alumnos</option>
+      </select>
     </div>
     <div class="m-field"><label>Fecha (dejar vacío = hoy)</label>
       <input class="inp" id="as-fecha" type="date">
@@ -799,16 +805,21 @@ function renderProfRutinas(){
   // Poblar select de asignar
   const alumnos=getAlumnos().filter(a=>a.profId===currentUser.id)
   const selAs=document.getElementById('nr-asignar')
-  selAs.innerHTML='<option value="todos">Todos los alumnos</option>'+
+  selAs.innerHTML='<option value="">— Sin asignar (borrador) —</option><option value="todos">Todos los alumnos</option>'+
     alumnos.map(a=>`<option value="${a.id}">${a.nombre}</option>`).join('')
   document.getElementById('prof-rutinas-list').innerHTML=rutinas.length===0
     ?'<div class="empty"><div class="empty-ico">📋</div><div class="empty-txt">Crea tu primera rutina</div></div>'
-    :rutinas.map(r=>`<div class="card">
+    :rutinas.map(r=>{
+      let asigPill
+      if(!r.asignada)asigPill=`<span class="pill pill-gray" style="margin-top:.4rem">Sin asignar</span>`
+      else if(r.asignada==='todos')asigPill=`<span class="pill pill-accent" style="margin-top:.4rem">Todos</span>`
+      else asigPill=`<span class="pill pill-accent" style="margin-top:.4rem">${getAlumnos().find(a=>a.id===r.asignada)?.nombre||r.asignada}</span>`
+      return `<div class="card">
       <div style="display:flex;align-items:flex-start;justify-content:space-between">
         <div style="flex:1">
           <div style="font-weight:700;font-size:.88rem">${r.nombre}</div>
           <div class="card-sub">${r.ejercicios.length} ejercicios · ${r.dias.join('·')}</div>
-          <span class="pill pill-accent" style="margin-top:.4rem">${r.asignada==='todos'?'Todos':getAlumnos().find(a=>a.id===r.asignada)?.nombre||r.asignada}</span>
+          ${asigPill}
         </div>
         <div style="display:flex;gap:.3rem">
           <button class="btn-sm btn-accent" onclick="editarRutina('${r.id}')">Editar</button>
@@ -816,7 +827,7 @@ function renderProfRutinas(){
           <button class="btn-sm btn-danger" onclick="eliminarRutina('${r.id}')">✕</button>
         </div>
       </div>
-    </div>`).join('')
+    </div>`}).join('')
 }
 function renderProfReportes(){
   const dias=['L','M','X','J','V','S','D']
@@ -1010,7 +1021,7 @@ function editarRutina(id){
   const alumnos=getAlumnos().filter(a=>a.profId===currentUser.id)
   sel.innerHTML='<option value="todos">Todos los alumnos</option>'+
     alumnos.map(a=>`<option value="${a.id}">${a.nombre}</option>`).join('')
-  sel.value=rutina.asignada||'todos'
+  sel.value=rutina.asignada||''
 
   openModal('m-nueva-rutina')
 }
@@ -1025,8 +1036,9 @@ function openAsignar(rutinaId){
   document.getElementById('m-asignar-title').textContent='Asignar: '+rutina?.nombre
   const alumnos=getAlumnos().filter(a=>a.profId===currentUser.id)
   const sel=document.getElementById('as-alumnos')
-  sel.innerHTML='<option value="todos">Todos los alumnos</option>'+
+  sel.innerHTML='<option value="">— Sin asignar (borrador) —</option><option value="todos">Todos los alumnos</option>'+
     alumnos.map(a=>`<option value="${a.id}">${a.nombre}</option>`).join('')
+  sel.value=rutina?.asignada||''
   const hoyDate=new Date().toISOString().split('T')[0]
   document.getElementById('as-fecha').value=hoyDate
   openModal('m-asignar')
@@ -1071,6 +1083,7 @@ function toggleDia(btn){btn.classList.toggle('on')}
 let ejState=[] // estado local de los ejercicios de la sesión
 let obsGeneral='' // observación general de la sesión (alumno)
 let rutinaSeleccionada=null // id de la rutina elegida en el selector del alumno
+let ejActivo=null // id del ejercicio que el alumno eligió tocar ahora (orden libre)
 
 function alumTab(tab){
   ['hoy','hist','perf'].forEach(t=>document.getElementById('abt-'+t).classList.remove('on'))
@@ -1147,6 +1160,7 @@ function renderAlumnoHoy(main){
   if(rutinaSel&&(ejState.length===0||ejState[0]?.rutinaId!==rutinaSel.id)){
     ejState=rutinaSel.ejercicios.map(e=>({...e,rutinaId:rutinaSel.id,done:false,carga:0,rpeFinal:null,comentario:''}))
     obsGeneral=''
+    ejActivo=null
   }
 
   // Selector de sesión de la semana
@@ -1214,12 +1228,13 @@ function renderAlumnoHoy(main){
   renderEjs()
 }
 function cambiarSesion(rutinaId){
-  if(!rutinaId){rutinaSeleccionada=null;ejState=[];renderAlumnoHoy(document.getElementById('alum-main'));return}
+  if(!rutinaId){rutinaSeleccionada=null;ejState=[];ejActivo=null;renderAlumnoHoy(document.getElementById('alum-main'));return}
   rutinaSeleccionada=rutinaId
   const rutina=getRutinas().find(r=>r.id===rutinaId)
   if(rutina){
     ejState=rutina.ejercicios.map(e=>({...e,rutinaId:rutina.id,done:false,carga:0,rpeFinal:null,comentario:''}))
     obsGeneral=''
+    ejActivo=null
   }
   renderAlumnoHoy(document.getElementById('alum-main'))
 }
@@ -1227,8 +1242,12 @@ function cambiarSesion(rutinaId){
 function renderEjs(){
   const list=document.getElementById('ejs-list')
   if(!list)return
+  // Determinar ejercicio activo: el elegido por el alumno, o por defecto el primero sin completar
+  if(!ejActivo||ejState.find(e=>e.id===ejActivo)?.done){
+    ejActivo=ejState.find(e=>!e.done)?.id||null
+  }
   list.innerHTML=ejState.map((ej,idx)=>{
-    const isActive=!ej.done&&ejState.findIndex(e=>!e.done)===idx
+    const isActive=!ej.done&&ej.id===ejActivo
     const rpeColors={1:'sel-g',2:'sel-g',3:'sel-g',4:'sel-g',5:'sel-g',6:'sel-g',7:'sel-y',8:'sel-y',9:'sel-r',10:'sel-r'}
     return `<div class="ej-card ${ej.done?'done':isActive?'active':''}" id="ejc-${ej.id}">
       <div class="ej-head" onclick="activateEj('${ej.id}')">
@@ -1239,7 +1258,7 @@ function renderEjs(){
           ${ej.done&&ej.carga?`<div style="font-size:.72rem;color:var(--green)">${ej.carga} kg · RPE ${ej.rpeFinal}</div>`:''}
           ${ej.obs?`<div style="font-size:.68rem;color:var(--text3);font-style:italic;margin-top:1px">📋 ${ej.obs}</div>`:''}
         </div>
-        ${ej.done?'<span class="pill pill-green">✓</span>':''}
+        ${ej.done?'<span class="pill pill-green">✓</span>':!isActive?'<span style="font-size:.7rem;color:var(--text3)">Tocar para empezar</span>':''}
       </div>
       ${isActive?`<div class="ej-body">
         <div class="spec-row">
@@ -1272,7 +1291,11 @@ function renderEjs(){
     </div>`
   }).join('')
 }
-function activateEj(id){const e=ejState.find(x=>x.id===id);if(e&&!e.done)renderEjs()}
+function activateEj(id){
+  const e=ejState.find(x=>x.id===id);if(!e||e.done)return
+  ejActivo=id
+  renderEjs()
+}
 function ajustarCarga(id,delta){
   const e=ejState.find(x=>x.id===id);if(!e)return
   e.carga=Math.max(0,Math.round((e.carga+delta)*2)/2)
@@ -1288,6 +1311,7 @@ function setObsGeneral(v){obsGeneral=v}
 function completarEj(id){
   const e=ejState.find(x=>x.id===id);if(!e||!e.rpeFinal)return
   e.done=true
+  ejActivo=null
   toast(`${e.nombre} ✓`,'ok')
   // ¿Todos listos?
   if(ejState.every(e=>e.done)){
@@ -1307,6 +1331,7 @@ function completarEj(id){
     ejState=[]
     obsGeneral=''
     rutinaSeleccionada=null
+    ejActivo=null
     alumTab('hoy')
     return
   }
