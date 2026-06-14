@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b1430">
+<title>CRH Training</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0e1c;--bg2:#101830;--bg3:#16203f;--bg4:#1c2a4d;--bg5:#243660;
+  --border:#ffffff0d;--border2:#ffffff18;--border3:#ffffff25;
+  --text:#eef1fb;--text2:#8d97bb;--text3:#48527a;
+  --accent:#2547e8;--accent2:#4d6bff;--accentbg:#2547e81c;
+  --gold:#f5c518;--goldbg:#f5c5181a;--gold2:#ffd84a;
+  --green:#22c55e;--greenbg:#22c55e15;
+  --yellow:#eab308;--yellowbg:#eab30818;
+  --red:#ef4444;--redbg:#ef444415;
+  --blue:#4d6bff;--bluebg:#2547e815;
+  --r:10px;--r2:14px;--r3:18px;
+}
+html{font-size:16px;height:100%;background:var(--bg)}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);height:100%;overflow:hidden}
+button,input,select,textarea{font-family:'Outfit',sans-serif}
+button{cursor:pointer}
+
+/* ── SCREENS ── */
+.screen{position:fixed;inset:0;display:none;flex-direction:column;background:var(--bg)}
+.screen.show{display:flex}
+
+/* ── NOISE OVERLAY ── */
+.noise{position:fixed;inset:0;pointer-events:none;opacity:.025;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:128px;
+}
+
+/* ── GLOW ORBS ── */
+.orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0;filter:blur(80px)}
+.orb1{width:400px;height:400px;background:#2547e82a;top:-150px;right:-100px}
+.orb2{width:300px;height:300px;background:#f5c5180f;bottom:-100px;left:-80px}
+
+/* ── LOGIN ── */
+#s-login{align-items:center;justify-content:center;padding:1.5rem;z-index:1}
+.login-wrap{width:100%;max-width:360px;position:relative;z-index:2}
+.logo{font-size:2.3rem;font-weight:800;letter-spacing:-2px;margin-bottom:.25rem;display:flex;align-items:baseline;gap:.35rem}
+.logo-crh{color:#fff}
+.logo-dot{color:var(--gold)}
+.logo-training{font-size:1.05rem;font-weight:500;color:var(--text2);letter-spacing:2px;text-transform:uppercase}
+.logo-sub{font-size:.8rem;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:2rem}
+.tabs{display:flex;gap:3px;background:var(--bg3);border-radius:var(--r);padding:3px;margin-bottom:1.5rem;border:1px solid var(--border2)}
+.tab{flex:1;padding:.5rem;border:none;background:transparent;color:var(--text3);font-size:.82rem;font-weight:500;border-radius:8px;transition:all .2s}
+.tab.on{background:var(--bg5);color:var(--text);box-shadow:0 1px 4px #0006}
+.field{margin-bottom:.85rem}
+.field label{display:block;font-size:.75rem;color:var(--text2);margin-bottom:.35rem;font-weight:500;letter-spacing:.3px}
+.inp{width:100%;padding:.7rem 1rem;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-size:.9rem;outline:none;transition:border-color .2s}
+.inp:focus{border-color:var(--accent)}
+.inp::placeholder{color:var(--text3)}
+.btn-main{width:100%;padding:.8rem;background:var(--accent);border:none;border-radius:var(--r);color:#fff;font-size:.95rem;font-weight:700;letter-spacing:.3px;transition:all .2s;margin-top:.5rem}
+.btn-main:hover{background:var(--accent2)}
+.btn-main:active{transform:scale(.98)}
+.demo-row{display:flex;gap:6px;margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border2)}
+.demo-btn{flex:1;padding:.45rem .3rem;border:1px solid var(--border2);background:var(--bg3);border-radius:8px;color:var(--text2);font-size:.72rem;transition:all .2s}
+.demo-btn:hover{border-color:var(--accent);color:var(--accent2)}
+
+/* ── TOP NAV ── */
+.topnav{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.25rem;background:var(--bg2);border-bottom:1px solid var(--border2);position:relative;z-index:10;flex-shrink:0}
+.nav-logo{font-size:1.15rem;font-weight:800;letter-spacing:-1px}
+.nav-logo span{color:var(--gold)}
+.nav-right{display:flex;align-items:center;gap:.6rem}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:.2rem .6rem;border-radius:20px;font-size:.7rem;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
+.pill-green{background:var(--greenbg);color:var(--green);border:1px solid #10b98133}
+.pill-yellow{background:var(--yellowbg);color:var(--yellow);border:1px solid #f59e0b33}
+.pill-red{background:var(--redbg);color:var(--red);border:1px solid #ef444433}
+.pill-accent{background:var(--accentbg);color:var(--accent2);border:1px solid #2547e855}
+.pill-gold{background:var(--goldbg);color:var(--gold2);border:1px solid #f5c51840}
+.pill-gray{background:var(--bg4);color:var(--text2);border:1px solid var(--border2)}
+.icon-btn{width:34px;height:34px;border:1px solid var(--border2);background:var(--bg3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;color:var(--text2);transition:all .2s}
+.icon-btn:hover{background:var(--bg4);color:var(--text)}
+.ava{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0}
+
+/* ── SCROLL AREA ── */
+.scroll{flex:1;overflow-y:auto;padding:1.1rem 1.1rem 6rem;position:relative;z-index:1}
+.scroll::-webkit-scrollbar{width:3px}
+.scroll::-webkit-scrollbar-thumb{background:var(--border3);border-radius:2px}
+
+/* ── BOTTOM NAV ── */
+.botnav{display:flex;background:var(--bg2);border-top:1px solid var(--border2);flex-shrink:0;position:relative;z-index:10;padding-bottom:env(safe-area-inset-bottom)}
+.botnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:.55rem .4rem;border:none;background:transparent;color:var(--text3);font-size:.62rem;font-weight:500;position:relative;transition:color .2s}
+.botnav-btn.on{color:var(--accent2)}
+.botnav-btn.on::before{content:'';position:absolute;top:0;left:20%;right:20%;height:2px;background:var(--gold);border-radius:0 0 3px 3px}
+.botnav-icon{font-size:1.15rem;line-height:1}
+
+/* ── CARDS ── */
+.card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:1rem;margin-bottom:.7rem}
+.card-title{font-size:.9rem;font-weight:700;margin-bottom:.6rem;letter-spacing:-.2px}
+.card-sub{font-size:.75rem;color:var(--text2);margin-top:.1rem}
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.8rem}
+.metric{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:.85rem}
+.metric-lbl{font-size:.72rem;color:var(--text2);margin-bottom:.3rem}
+.metric-val{font-size:1.7rem;font-weight:800;letter-spacing:-1px;line-height:1}
+.metric-note{font-size:.68rem;margin-top:.25rem}
+.sec-title{font-size:.85rem;font-weight:700;color:var(--text);margin-bottom:.65rem;letter-spacing:-.1px}
+
+/* ── SEMAFORO BAR ── */
+.sem-bar{height:6px;border-radius:3px;overflow:hidden;display:flex;gap:2px;margin-top:.6rem}
+.sem-g,.sem-y,.sem-r{border-radius:2px}
+.sem-g{background:var(--green)}
+.sem-y{background:var(--yellow)}
+.sem-r{background:var(--red)}
+.sem-nums{display:flex;gap:1.2rem;margin-bottom:.5rem}
+.sem-item{text-align:center}
+.sem-n{font-size:1.2rem;font-weight:800}
+.sem-l{font-size:.65rem;color:var(--text2);margin-top:1px}
+
+/* ── LISTA ALUMNOS ── */
+.a-item{display:flex;align-items:center;gap:.7rem;padding:.75rem;background:var(--bg3);border-radius:var(--r);margin-bottom:.45rem;cursor:pointer;border:1px solid transparent;transition:all .15s;border-left:3px solid transparent}
+.a-item:hover{background:var(--bg4);border-color:var(--border2)}
+.a-item.hl-r{border-left-color:var(--red)}
+.a-item.hl-g{border-left-color:var(--green)}
+.a-item.hl-y{border-left-color:var(--yellow)}
+.a-name{font-size:.88rem;font-weight:600;flex:1}
+.a-meta{font-size:.72rem;color:var(--text2)}
+
+/* ── EJERCICIO CARD (ALUMNO) ── */
+.ej-card{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);margin-bottom:.6rem;overflow:hidden;transition:all .2s}
+.ej-card.done{border-color:#10b98133;background:#10b98108}
+.ej-card.active{border-color:#f5c51866;background:#f5c5180a}
+.ej-head{display:flex;align-items:center;gap:.6rem;padding:.85rem;cursor:pointer}
+.ej-num{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex-shrink:0;font-family:'JetBrains Mono',monospace}
+.ej-body{padding:0 .85rem .85rem}
+.spec-row{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.65rem}
+.spec{padding:.2rem .55rem;background:var(--bg4);border-radius:6px;font-size:.72rem;color:var(--text2)}
+.rpe-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.3rem;margin-bottom:.6rem}
+.rpe-btn{height:36px;border-radius:8px;border:1px solid var(--border2);background:var(--bg4);color:var(--text2);font-size:.82rem;font-weight:700;transition:all .12s}
+.rpe-btn.sel-g{background:var(--greenbg);border-color:var(--green);color:var(--green)}
+.rpe-btn.sel-y{background:var(--yellowbg);border-color:var(--yellow);color:var(--yellow)}
+.rpe-btn.sel-r{background:var(--redbg);border-color:var(--red);color:var(--red)}
+.carga-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem}
+.carga-inp{flex:1;text-align:center;padding:.55rem;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-size:1.1rem;font-weight:700;outline:none;font-family:'JetBrains Mono',monospace}
+.carga-inp:focus{border-color:var(--accent)}
+.pm-btn{width:36px;height:36px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:1.1rem;font-weight:700;flex-shrink:0;transition:all .1s}
+.pm-btn:active{transform:scale(.92)}
+.obs-inp{width:100%;padding:.55rem .7rem;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-size:.82rem;resize:none;outline:none;margin-bottom:.6rem}
+.obs-inp:focus{border-color:var(--accent)}
+.obs-inp::placeholder{color:var(--text3)}
+.btn-completar{width:100%;padding:.75rem;background:var(--accent);border:none;border-radius:var(--r);color:#fff;font-size:.9rem;font-weight:700;letter-spacing:.3px;transition:all .2s}
+.btn-completar:hover{background:var(--accent2)}
+.btn-completar:active{transform:scale(.98)}
+.btn-completar:disabled{background:var(--bg5);color:var(--text3);cursor:not-allowed}
+.btn-done{width:100%;padding:.75rem;background:var(--greenbg);border:1px solid #10b98133;border-radius:var(--r);color:var(--green);font-size:.9rem;font-weight:700;cursor:default}
+
+/* ── PROGRESO BAR ── */
+.prog-wrap{height:5px;background:var(--bg4);border-radius:3px;overflow:hidden;margin:.4rem 0 .9rem}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));border-radius:3px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+/* ── RUTINA BUILDER ── */
+.ej-builder{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);padding:.85rem;margin-bottom:.5rem;position:relative}
+.b-row{display:flex;gap:.4rem;margin-bottom:.4rem;flex-wrap:wrap}
+.b-inp{flex:1;min-width:70px;padding:.5rem .6rem;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:.82rem;outline:none}
+.b-inp:focus{border-color:var(--accent)}
+.b-inp::placeholder{color:var(--text3)}
+.btn-add-ej{width:100%;padding:.65rem;border:1px dashed var(--border3);background:transparent;border-radius:var(--r);color:var(--text2);font-size:.82rem;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:.4rem}
+.btn-add-ej:hover{border-color:var(--accent);color:var(--accent2);background:var(--accentbg)}
+.btn-rm{position:absolute;top:.7rem;right:.7rem;width:24px;height:24px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text3);font-size:.85rem;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.btn-rm:hover{background:var(--redbg);color:var(--red);border-color:#ef444433}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:#00000090;z-index:500;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.modal-bg.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border3);border-radius:var(--r3) var(--r3) 0 0;padding:1.35rem 1.1rem;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.modal-bg.show .modal{transform:translateY(0)}
+.modal-handle{width:36px;height:4px;background:var(--border3);border-radius:2px;margin:0 auto 1.1rem}
+.modal-title{font-size:1.05rem;font-weight:700;margin-bottom:1.1rem;letter-spacing:-.2px}
+.m-field{margin-bottom:.85rem}
+.m-field label{display:block;font-size:.75rem;color:var(--text2);margin-bottom:.3rem;font-weight:500}
+select.inp{appearance:none;-webkit-appearance:none}
+
+/* ── TRIAL BANNER ── */
+.trial-banner{background:linear-gradient(135deg,var(--yellowbg),transparent);border:1px solid #f59e0b22;border-radius:var(--r2);padding:.85rem 1rem;display:flex;align-items:center;gap:.7rem;margin-bottom:.8rem}
+.trial-text{flex:1;font-size:.82rem;font-weight:600;color:var(--yellow)}
+.trial-sub{font-size:.72rem;color:var(--text2);font-weight:400;margin-top:1px}
+.btn-sub{padding:.45rem 1rem;background:var(--accent);border:none;border-radius:8px;color:#fff;font-size:.78rem;font-weight:700;white-space:nowrap}
+
+/* ── PAGO BANNER ── */
+.pago-banner{background:linear-gradient(135deg,var(--accentbg),var(--bluebg));border:1px solid #2547e830;border-radius:var(--r2);padding:.85rem 1rem;display:flex;align-items:center;gap:.7rem;margin-bottom:.8rem}
+.btn-pagar{padding:.5rem 1rem;background:var(--accent);border:none;border-radius:8px;color:#fff;font-size:.8rem;font-weight:700;white-space:nowrap}
+
+/* ── COMPLETADO ── */
+.comp-wrap{display:flex;flex-direction:column;align-items:center;text-align:center;padding:2rem 1rem}
+.comp-icon{width:72px;height:72px;border-radius:50%;background:var(--greenbg);border:2px solid #10b98133;display:flex;align-items:center;justify-content:center;font-size:2rem;margin-bottom:1rem}
+.comp-title{font-size:1.4rem;font-weight:800;color:var(--green);letter-spacing:-.5px}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;width:100%;margin:1rem 0}
+.stat-box{background:var(--bg3);border-radius:var(--r);padding:.7rem;text-align:center}
+.stat-v{font-size:1.1rem;font-weight:800;letter-spacing:-.5px}
+.stat-l{font-size:.65rem;color:var(--text2);margin-top:2px}
+
+/* ── HISTORIAL ── */
+.week-row{display:flex;gap:3px;margin-bottom:.8rem}
+.day-c{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.day-lbl{font-size:.6rem;color:var(--text2);font-weight:700;text-transform:uppercase}
+.day-dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700}
+.day-ok{background:var(--greenbg);color:var(--green);border:1px solid #10b98133}
+.day-no{background:var(--redbg);color:var(--red);border:1px solid #ef444433}
+.day-nd{background:var(--bg4);color:var(--text3);border:1px solid var(--border2)}
+
+/* ── PROF CARD (ADMIN) ── */
+.prof-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:.9rem;margin-bottom:.6rem}
+.prof-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;margin:.7rem 0}
+.ps{background:var(--bg3);border-radius:8px;padding:.5rem;text-align:center}
+.ps-v{font-size:.95rem;font-weight:800;letter-spacing:-.5px}
+.ps-l{font-size:.65rem;color:var(--text2);margin-top:1px}
+.prof-actions{display:flex;gap:.4rem;flex-wrap:wrap}
+.btn-sm{padding:.3rem .75rem;border-radius:7px;font-size:.75rem;font-weight:600;border:1px solid var(--border2);background:transparent;color:var(--text2);transition:all .12s}
+.btn-sm:hover{background:var(--bg4)}
+.btn-danger{border-color:#ef444433;color:var(--red)}
+.btn-danger:hover{background:var(--redbg)}
+.btn-success{border-color:#10b98133;color:var(--green)}
+.btn-success:hover{background:var(--greenbg)}
+.btn-accent{border-color:#2547e855;color:var(--accent2)}
+.btn-accent:hover{background:var(--accentbg)}
+
+/* ── SETTINGS ── */
+.set-lbl{font-size:.72rem;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.4rem}
+.link-prev{background:var(--bg3);border:1px solid #10b98122;border-radius:var(--r);padding:.65rem .85rem;font-size:.78rem;color:var(--green);word-break:break-all;margin-bottom:.5rem}
+
+/* ── REPORTE ── */
+.prog-row{margin-bottom:.65rem}
+.prog-lbl{display:flex;justify-content:space-between;margin-bottom:.25rem}
+.prog-name{font-size:.8rem;font-weight:500}
+.prog-pct{font-size:.8rem;font-weight:700}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--text3)}
+.empty-ico{font-size:2rem;margin-bottom:.6rem}
+.empty-txt{font-size:.85rem}
+
+/* ── TOAST ── */
+.toast{position:fixed;top:5rem;left:50%;transform:translateX(-50%) translateY(-12px);background:var(--bg3);border:1px solid var(--border3);border-radius:var(--r);padding:.65rem 1.1rem;font-size:.82rem;font-weight:600;z-index:9999;opacity:0;transition:all .22s;pointer-events:none;white-space:nowrap;box-shadow:0 8px 32px #00000080}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:#10b98144;color:var(--green)}
+.toast.err{border-color:#ef444444;color:var(--red)}
+.toast.inf{border-color:#2547e855;color:var(--accent2)}
+
+/* ── INLINE TABS ── */
+.itabs{display:flex;gap:3px;background:var(--bg3);border-radius:var(--r);padding:3px;margin-bottom:1rem;border:1px solid var(--border2)}
+.itab{flex:1;padding:.4rem;border:none;background:transparent;color:var(--text3);font-size:.76rem;font-weight:600;border-radius:8px;transition:all .15s}
+.itab.on{background:var(--bg5);color:var(--text)}
+
+/* ── DIAS SELECTOR ── */
+.dias-wrap{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.3rem}
+.dia-btn{padding:.3rem .6rem;border:1px solid var(--border2);background:var(--bg4);border-radius:7px;color:var(--text2);font-size:.78rem;font-weight:700;transition:all .12s}
+.dia-btn.on{background:var(--greenbg);border-color:var(--green);color:var(--green)}
+
+/* ── ANIM ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .3s ease forwards}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════════════════════════
+     LOGIN
+═══════════════════════════════════════ -->
+<div class="screen show" id="s-login">
+  <div class="login-wrap fade-up">
+    <div class="logo"><span class="logo-crh">CRH<span class="logo-dot">.</span></span><span class="logo-training">Training</span></div>
+    <div class="logo-sub">Plataforma de entrenamiento · Claudio Rojas</div>
+    <div class="tabs">
+      <button class="tab on" onclick="setLoginTab('prof')">Profesor</button>
+      <button class="tab" onclick="setLoginTab('alum')">Alumno</button>
+    </div>
+
+    <!-- Login Profesor -->
+    <div id="lt-prof">
+      <div class="field"><label>Correo</label><input class="inp" id="l-email" type="email" placeholder="tu@correo.com" value="claudio@crhtraining.cl"></div>
+      <div class="field"><label>Contraseña</label><input class="inp" id="l-pass" type="password" placeholder="••••••••"></div>
+      <button class="btn-main" onclick="loginProf()">Ingresar</button>
+    </div>
+    <!-- Login Alumno -->
+    <div id="lt-alum" style="display:none">
+      <div style="font-size:.75rem;color:var(--text2);margin-bottom:.75rem">Tu profesor te dio un código de acceso</div>
+      <div class="field"><label>Código de acceso</label><input class="inp" id="a-code" placeholder="Ej: matias2026"></div>
+      <button class="btn-main" onclick="loginAlumno()">Entrar a mi rutina</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PROFESOR
+═══════════════════════════════════════ -->
+<div class="screen" id="s-prof">
+  <nav class="topnav">
+    <div class="nav-logo">CRH<span>.</span> Training</div>
+    <div class="nav-right">
+      <span class="pill" id="prof-badge">TRIAL</span>
+      <button class="icon-btn" onclick="logout()">⎋</button>
+    </div>
+  </nav>
+  <div class="itabs" style="margin:.7rem .7rem 0;flex-shrink:0" id="prof-itabs">
+    <button class="itab on" onclick="showPTab('inicio')">Inicio</button>
+    <button class="itab" onclick="showPTab('alumnos')">Alumnos</button>
+    <button class="itab" onclick="showPTab('rutinas')">Rutinas</button>
+    <button class="itab" onclick="showPTab('reportes')">Reportes</button>
+    <button class="itab" onclick="showPTab('config')">Config</button>
+  </div>
+  <div class="scroll" id="prof-scroll">
+
+    <!-- INICIO -->
+    <div id="pt-inicio">
+      <div class="trial-banner" id="trial-banner">
+        <span style="font-size:1.3rem">⏳</span>
+        <div class="flex-1"><div class="trial-text" id="trial-text">Trial: 14 días restantes</div><div class="trial-sub">Agrega tu tarjeta para no perder el acceso</div></div>
+        <button class="btn-sub" onclick="suscribirse()">Suscribirme</button>
+      </div>
+      <div class="metric-grid">
+        <div class="metric"><div class="metric-lbl">Alumnos activos</div><div class="metric-val" id="p-activos" style="color:var(--text)">0</div><div class="metric-note" style="color:var(--text2)" id="p-activos-note"></div></div>
+        <div class="metric"><div class="metric-lbl">Cumplimiento sem.</div><div class="metric-val" id="p-cump">—%</div><div class="metric-note" style="color:var(--text2)">últimos 7 días</div></div>
+        <div class="metric"><div class="metric-lbl">RPE prom. hoy</div><div class="metric-val" id="p-rpe">—</div><div class="metric-note" id="p-rpe-note" style="color:var(--text2)">sin registros</div></div>
+        <div class="metric"><div class="metric-lbl">Sin registrar hoy</div><div class="metric-val" id="p-sinreg" style="color:var(--red)">0</div><div class="metric-note" style="color:var(--text2)">con asignación</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Semáforo de carga — hoy</div>
+        <div class="sem-nums" id="sem-nums">
+          <div class="sem-item"><div class="sem-n" style="color:var(--green)" id="sem-g">0</div><div class="sem-l">Normal ≤6.5</div></div>
+          <div class="sem-item"><div class="sem-n" style="color:var(--yellow)" id="sem-y">0</div><div class="sem-l">Moderado 6.6–8</div></div>
+          <div class="sem-item"><div class="sem-n" style="color:var(--red)" id="sem-r">0</div><div class="sem-l">Alto &gt;8</div></div>
+        </div>
+        <div class="sem-bar" id="sem-bar"><div style="flex:1;background:var(--bg4);border-radius:3px"></div></div>
+      </div>
+      <div class="sec-title" id="alertas-title" style="display:none">🔴 Alertas RPE alto</div>
+      <div id="alertas-list"></div>
+      <div class="sec-title">Accesos rápidos</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+        <button class="a-item" style="cursor:pointer;border-radius:var(--r)" onclick="showPTab('alumnos');openModal('m-nuevo-alumno')"><span>👤</span><span class="a-name">+ Nuevo alumno</span></button>
+        <button class="a-item" style="cursor:pointer;border-radius:var(--r)" onclick="showPTab('rutinas');openModal('m-nueva-rutina')"><span>📋</span><span class="a-name">+ Nueva rutina</span></button>
+        <button class="a-item" style="cursor:pointer;border-radius:var(--r)" onclick="showPTab('reportes')"><span>📊</span><span class="a-name">Ver reportes</span></button>
+        <button class="a-item" style="cursor:pointer;border-radius:var(--r)" onclick="showPTab('config')"><span>⚙️</span><span class="a-name">Configuración</span></button>
+      </div>
+    </div>
+
+    <!-- ALUMNOS -->
+    <div id="pt-alumnos" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
+        <div class="sec-title" style="margin:0" id="alumnos-count">Mis alumnos</div>
+        <button class="btn-sm btn-accent" onclick="openModal('m-nuevo-alumno')">+ Alumno</button>
+      </div>
+      <div id="prof-alumnos-list"></div>
+    </div>
+
+    <!-- RUTINAS -->
+    <div id="pt-rutinas" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
+        <div class="sec-title" style="margin:0" id="rutinas-count">Mis rutinas</div>
+        <button class="btn-sm btn-accent" onclick="openModal('m-nueva-rutina')">+ Rutina</button>
+      </div>
+      <div id="prof-rutinas-list"></div>
+    </div>
+
+    <!-- REPORTES -->
+    <div id="pt-reportes" style="display:none">
+      <div class="sec-title">Cumplimiento semanal</div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:.6rem">Por día</div>
+        <div class="week-row" id="rep-week"></div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:.75rem">Por alumno</div>
+        <div id="rep-alumnos"></div>
+      </div>
+    </div>
+
+    <!-- CONFIG -->
+    <div id="pt-config" style="display:none">
+      <div class="sec-title">Mi gimnasio</div>
+      <div class="card">
+        <div class="m-field"><div class="set-lbl">Nombre del gym</div><input class="inp" id="cfg-gym" placeholder="CrossFit Norte"></div>
+        <div class="m-field"><div class="set-lbl">Mi nombre</div><input class="inp" id="cfg-nombre" placeholder="Carlos Rojas"></div>
+        <button class="btn-main" onclick="guardarConfig()">Guardar</button>
+      </div>
+      <div class="sec-title" style="margin-top:.5rem">💳 Link de pago para tus alumnos</div>
+      <div class="card">
+        <div class="m-field"><div class="set-lbl">Link Mercado Pago</div><input class="inp" id="cfg-mp" placeholder="https://mpago.la/tu-link" oninput="updateLinkPreview()"></div>
+        <div class="m-field"><div class="set-lbl">Precio mensual</div><input class="inp" id="cfg-precio" placeholder="$15.000 CLP / mes"></div>
+        <div class="m-field"><div class="set-lbl">Mensaje para alumnos</div><textarea class="inp" id="cfg-msg" rows="2" placeholder="Paga aquí tu membresía mensual" style="resize:none"></textarea></div>
+        <div class="set-lbl">Vista previa</div>
+        <div class="link-prev" id="link-prev-text">—</div>
+        <button class="btn-main" onclick="guardarConfig()">Guardar configuración</button>
+      </div>
+      <div class="sec-title" style="margin-top:.5rem">Mi suscripción CRH Training</div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div style="font-weight:700;font-size:.9rem">Plan Pro</div><div class="card-sub">Hasta 60 alumnos · $19.990/mes</div></div>
+          <span class="pill pill-yellow">TRIAL</span>
+        </div>
+        <div style="height:4px;background:var(--bg4);border-radius:2px;margin:.7rem 0;overflow:hidden"><div style="width:30%;height:100%;background:linear-gradient(90deg,var(--yellow),#f59e0b88);border-radius:2px"></div></div>
+        <div style="font-size:.78rem;color:var(--text2);margin-bottom:.7rem">14 días de prueba restantes</div>
+        <button class="btn-main" onclick="suscribirse()">Suscribirme — $19.990/mes</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     ALUMNO
+═══════════════════════════════════════ -->
+<div class="screen" id="s-alumno">
+  <nav class="topnav">
+    <div class="nav-logo">CRH<span>.</span> Training</div>
+    <div class="nav-right">
+      <div class="ava" id="alum-ava" style="background:var(--goldbg);color:var(--gold2)">MM</div>
+      <button class="icon-btn" onclick="logout()">⎋</button>
+    </div>
+  </nav>
+  <div class="scroll" id="alum-scroll">
+    <div id="alum-main"></div>
+  </div>
+  <nav class="botnav">
+    <button class="botnav-btn on" id="abt-hoy" onclick="alumTab('hoy')"><span class="botnav-icon">🏋️</span>Hoy</button>
+    <button class="botnav-btn" id="abt-hist" onclick="alumTab('hist')"><span class="botnav-icon">📊</span>Historial</button>
+    <button class="botnav-btn" id="abt-perf" onclick="alumTab('perf')"><span class="botnav-icon">👤</span>Perfil</button>
+  </nav>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MODALES
+═══════════════════════════════════════ -->
+<div class="modal-bg" id="m-nuevo-alumno" onclick="closeMOutside(event,'m-nuevo-alumno')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Agregar alumno</div>
+    <div class="m-field"><label>Nombre completo</label><input class="inp" id="na-nombre" placeholder="Matías Moreno"></div>
+    <div class="m-field"><label>Edad</label><input class="inp" id="na-edad" type="number" placeholder="17"></div>
+    <div class="m-field"><label>Nivel</label>
+      <select class="inp" id="na-nivel"><option>Básico</option><option>Intermedio</option><option selected>Avanzado</option></select></div>
+    <div class="m-field"><label>Grupo / disciplina</label><input class="inp" id="na-grupo" placeholder="Halterofilia Juvenil"></div>
+    <div class="m-field"><label>Código de acceso (login)</label><input class="inp" id="na-codigo" placeholder="matias2026"></div>
+    <div class="m-field"><label>Observaciones</label><textarea class="inp" id="na-obs" rows="2" placeholder="Lesiones, notas..." style="resize:none"></textarea></div>
+    <button class="btn-main" onclick="agregarAlumno()">Agregar alumno</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="m-nueva-rutina" onclick="closeMOutside(event,'m-nueva-rutina')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Crear rutina</div>
+    <div class="m-field"><label>Nombre de la sesión</label><input class="inp" id="nr-nombre" placeholder="Fuerza inferior — Martes"></div>
+    <div class="m-field"><label>Días de la semana</label>
+      <div class="dias-wrap" id="dias-wrap">
+        <button class="dia-btn" onclick="toggleDia(this)">L</button>
+        <button class="dia-btn on" onclick="toggleDia(this)">M</button>
+        <button class="dia-btn" onclick="toggleDia(this)">X</button>
+        <button class="dia-btn" onclick="toggleDia(this)">J</button>
+        <button class="dia-btn on" onclick="toggleDia(this)">V</button>
+        <button class="dia-btn" onclick="toggleDia(this)">S</button>
+        <button class="dia-btn" onclick="toggleDia(this)">D</button>
+      </div>
+    </div>
+    <div style="font-size:.75rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:.4rem">Ejercicios</div>
+    <div id="ej-builder-list">
+      <div class="ej-builder">
+        <button class="btn-rm" onclick="rmEj(this)">×</button>
+        <div class="b-row"><input class="b-inp" style="flex:2" placeholder="Nombre del ejercicio"></div>
+        <div class="b-row">
+          <input class="b-inp" placeholder="Series" type="number">
+          <input class="b-inp" placeholder="Reps" type="number">
+          <input class="b-inp" placeholder="RPE obj." type="number" step="0.5">
+          <input class="b-inp" placeholder="Desc.seg" type="number">
+        </div>
+        <div class="b-row"><input class="b-inp" style="flex:1" placeholder="Obs. técnica (opcional)"></div>
+      </div>
+    </div>
+    <button class="btn-add-ej" onclick="addEj()">+ Ejercicio</button>
+    <div style="margin:.75rem 0"></div>
+    <div class="m-field"><label>Asignar a</label>
+      <select class="inp" id="nr-asignar"><option value="todos">Todos los alumnos</option></select>
+    </div>
+    <button class="btn-main" style="margin-top:.5rem" onclick="crearRutina()">Crear rutina</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="m-asignar" onclick="closeMOutside(event,'m-asignar')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="m-asignar-title">Asignar rutina</div>
+    <div class="m-field"><label>Asignar a</label>
+      <select class="inp" id="as-alumnos"><option value="todos">Todos los alumnos</option></select>
+    </div>
+    <div class="m-field"><label>Fecha (dejar vacío = hoy)</label>
+      <input class="inp" id="as-fecha" type="date">
+    </div>
+    <button class="btn-main" onclick="confirmarAsignacion()">Asignar</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  GYMFLOW — Motor de datos (localStorage)
+// ═══════════════════════════════════════════════════════════
+
+// Helpers de formato chileno
+const fCLP = n => new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',maximumFractionDigits:0}).format(n)
+const fFecha = d => new Date(d+'T12:00:00').toLocaleDateString('es-CL')
+const iniciales = s => s.split(' ').map(p=>p[0]).join('').slice(0,2).toUpperCase()
+const hoy = () => new Date().toISOString().split('T')[0]
+const colorRPE = r => r<=6.5?'var(--green)':r<=8?'var(--yellow)':'var(--red)'
+const pillRPE = r => r<=6.5?'pill-green':r<=8?'pill-yellow':'pill-red'
+const aColor = r => r<=6.5?'hl-g':r<=8?'hl-y':'hl-r'
+
+// Estado de la app
+let currentUser = null
+let currentRole = null
+let rutinaActiva = null // ID rutina seleccionada para asignar
+
+// Carga / guarda datos
+function load(k,def){try{const v=localStorage.getItem('gf_'+k);return v?JSON.parse(v):def}catch{return def}}
+function save(k,v){localStorage.setItem('gf_'+k,JSON.stringify(v))}
+
+// Inicializar SOLO tu cuenta de profesor — plataforma personal, sin datos de muestra
+function initDemo(){
+  if(load('inited',false))return
+  save('profesores',[
+    {id:'p1',nombre:'Claudio Rojas',gym:'CRH Training',email:'claudio@crhtraining.cl',pass:'CRHTraining2026',plan:'pro',trialDias:0,activo:true,mpLink:'',precio:'',msg:'Paga aquí tu membresía mensual.'},
+  ])
+  save('alumnos',[])
+  save('rutinas',[])
+  save('registros',[])
+  save('inited',true)
+}
+initDemo()
+
+
+
+// Getters
+const getProfesores = () => load('profesores',[])
+const getAlumnos = () => load('alumnos',[])
+const getRutinas = () => load('rutinas',[])
+const getRegistros = () => load('registros',[])
+
+// ═══════════════════════════════════════════════════════════
+//  LOGIN / NAV
+// ═══════════════════════════════════════════════════════════
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('show'));document.getElementById('s-'+id).classList.add('show')}
+function setLoginTab(t){
+  ['prof','alum'].forEach((x,i)=>{
+    document.getElementById('lt-'+x).style.display=x===t?'block':'none'
+    document.querySelectorAll('.tab')[i].classList.toggle('on',x===t)
+  })
+}
+function loginProf(){
+  const e=document.getElementById('l-email').value.trim()
+  const p=document.getElementById('l-pass').value
+  const prof=getProfesores().find(x=>x.email===e&&x.pass===p)
+  if(!prof){toast('Correo o contraseña incorrectos','err');return}
+  if(!prof.activo){toast('Cuenta suspendida. Contáctanos.','err');return}
+  currentUser=prof;currentRole='prof'
+  renderProf();showScreen('prof')
+}
+function loginAlumno(){
+  const code=document.getElementById('a-code').value.trim().toLowerCase()
+  const alumnos=getAlumnos()
+  const al=alumnos.find(a=>a.codigo===code&&a.activo)
+  if(!al){toast('Código no encontrado','err');return}
+  currentUser=al;currentRole='alumno'
+  document.getElementById('alum-ava').textContent=iniciales(al.nombre)
+  alumTab('hoy');showScreen('alumno')
+}
+function logout(){currentUser=null;currentRole=null;showScreen('login')}
+
+
+// ═══════════════════════════════════════════════════════════
+//  PROFESOR
+// ═══════════════════════════════════════════════════════════
+function showPTab(tab){
+  ['inicio','alumnos','rutinas','reportes','config'].forEach(t=>{
+    document.getElementById('pt-'+t).style.display=t===tab?'block':'none'
+  })
+  document.querySelectorAll('#prof-itabs .itab').forEach((b,i)=>{
+    b.classList.toggle('on',['inicio','alumnos','rutinas','reportes','config'][i]===tab)
+  })
+  if(tab==='alumnos')renderProfAlumnos()
+  if(tab==='rutinas')renderProfRutinas()
+  if(tab==='reportes')renderProfReportes()
+  if(tab==='config')renderConfig()
+}
+function renderProf(){
+  if(!currentUser)return
+  // Badge plan
+  const badge=document.getElementById('prof-badge')
+  const plan=currentUser.plan||'trial'
+  badge.textContent=plan==='trial'?`TRIAL ${currentUser.trialDias}d`:plan.toUpperCase()
+  badge.className='pill '+(plan==='trial'?'pill-yellow':plan==='suspendido'?'pill-red':'pill-green')
+  // Trial banner
+  const tb=document.getElementById('trial-banner')
+  tb.style.display=plan==='trial'?'flex':'none'
+  if(plan==='trial')document.getElementById('trial-text').textContent=`Trial: ${currentUser.trialDias} días restantes`
+  // Métricas
+  const alumnos=getAlumnos().filter(a=>a.profId===currentUser.id&&a.activo)
+  const registrosHoy=getRegistros().filter(r=>r.fecha===hoy()&&alumnos.some(a=>a.id===r.alumnoId))
+  const rpes=registrosHoy.map(r=>r.rpePromedio).filter(Boolean)
+  const rpeP=rpes.length?Math.round(rpes.reduce((s,v)=>s+v,0)/rpes.length*10)/10:null
+  document.getElementById('p-activos').textContent=alumnos.length
+  document.getElementById('p-activos-note').textContent=`de ${alumnos.length} registrados`
+  document.getElementById('p-rpe').textContent=rpeP||'—'
+  document.getElementById('p-rpe').style.color=rpeP?colorRPE(rpeP):'var(--text)'
+  document.getElementById('p-rpe-note').textContent=rpeP?(rpeP>8?'Carga alta':rpeP>6.5?'Moderado':'Normal'):'sin registros'
+  // Cumplimiento simplificado
+  const rutinas=getRutinas().filter(r=>r.profId===currentUser.id)
+  const totalAsig=rutinas.length*alumnos.length
+  const completadas=registrosHoy.filter(r=>r.completado).length
+  const cump=totalAsig>0?Math.round(completadas/Math.max(alumnos.length,1)*100):0
+  document.getElementById('p-cump').textContent=cump+'%'
+  document.getElementById('p-cump').style.color=cump>=85?'var(--green)':cump>=70?'var(--yellow)':'var(--red)'
+  document.getElementById('p-sinreg').textContent=Math.max(0,alumnos.length-registrosHoy.length)
+  // Semáforo
+  const g=rpes.filter(r=>r<=6.5).length,y=rpes.filter(r=>r>6.5&&r<=8).length,ro=rpes.filter(r=>r>8).length
+  document.getElementById('sem-g').textContent=g
+  document.getElementById('sem-y').textContent=y
+  document.getElementById('sem-r').textContent=ro
+  const total=g+y+ro
+  const bar=document.getElementById('sem-bar')
+  bar.innerHTML=total>0
+    ?`${g>0?`<div class="sem-g" style="flex:${g}"></div>`:''}${y>0?`<div class="sem-y" style="flex:${y}"></div>`:''}${ro>0?`<div class="sem-r" style="flex:${ro}"></div>`:''}`
+    :'<div style="flex:1;background:var(--bg4);border-radius:3px"></div>'
+  // Alertas
+  const alertas=registrosHoy.filter(r=>r.rpePromedio>8)
+  document.getElementById('alertas-title').style.display=alertas.length?'block':'none'
+  document.getElementById('alertas-list').innerHTML=alertas.map(r=>{
+    const al=alumnos.find(a=>a.id===r.alumnoId)
+    if(!al)return''
+    return `<div class="a-item hl-r">
+      <div class="ava" style="background:var(--redbg);color:var(--red)">${iniciales(al.nombre)}</div>
+      <div style="flex:1"><div class="a-name">${al.nombre}</div><div class="a-meta">${al.grupo}</div></div>
+      <span class="pill pill-red">RPE ${r.rpePromedio}</span>
+    </div>`
+  }).join('')
+  showPTab('inicio')
+}
+function renderProfAlumnos(){
+  const alumnos=getAlumnos().filter(a=>a.profId===currentUser.id)
+  document.getElementById('alumnos-count').textContent=`Mis alumnos (${alumnos.length})`
+  const regsHoy=getRegistros().filter(r=>r.fecha===hoy())
+  document.getElementById('prof-alumnos-list').innerHTML=alumnos.length===0
+    ?'<div class="empty"><div class="empty-ico">👥</div><div class="empty-txt">Agrega tu primer alumno</div></div>'
+    :alumnos.map(al=>{
+      const reg=regsHoy.find(r=>r.alumnoId===al.id)
+      const rpe=reg?.rpePromedio
+      return `<div class="a-item ${rpe?aColor(rpe):''}">
+        <div class="ava" style="background:var(--accentbg);color:var(--accent2)">${iniciales(al.nombre)}</div>
+        <div style="flex:1">
+          <div class="a-name">${al.nombre}</div>
+          <div class="a-meta">${al.grupo||''} · ${al.nivel} · código: ${al.codigo}</div>
+        </div>
+        <div style="text-align:right">
+          <span class="pill ${al.pagado?'pill-green':'pill-red'}" style="margin-bottom:3px">${al.pagado?'Pagado':'Sin pago'}</span>
+          ${rpe?`<div style="font-size:.7rem;color:${colorRPE(rpe)};margin-top:2px">RPE ${rpe}</div>`:'<div style="font-size:.7rem;color:var(--text3)">sin registro</div>'}
+        </div>
+      </div>`
+    }).join('')
+}
+function renderProfRutinas(){
+  const rutinas=getRutinas().filter(r=>r.profId===currentUser.id)
+  document.getElementById('rutinas-count').textContent=`Mis rutinas (${rutinas.length})`
+  // Poblar select de asignar
+  const alumnos=getAlumnos().filter(a=>a.profId===currentUser.id)
+  const selAs=document.getElementById('nr-asignar')
+  selAs.innerHTML='<option value="todos">Todos los alumnos</option>'+
+    alumnos.map(a=>`<option value="${a.id}">${a.nombre}</option>`).join('')
+  document.getElementById('prof-rutinas-list').innerHTML=rutinas.length===0
+    ?'<div class="empty"><div class="empty-ico">📋</div><div class="empty-txt">Crea tu primera rutina</div></div>'
+    :rutinas.map(r=>`<div class="card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:.88rem">${r.nombre}</div>
+          <div class="card-sub">${r.ejercicios.length} ejercicios · ${r.dias.join('·')}</div>
+          <span class="pill pill-accent" style="margin-top:.4rem">${r.asignada==='todos'?'Todos':getAlumnos().find(a=>a.id===r.asignada)?.nombre||r.asignada}</span>
+        </div>
+        <div style="display:flex;gap:.3rem">
+          <button class="btn-sm" onclick="openAsignar('${r.id}')">Asignar</button>
+          <button class="btn-sm btn-danger" onclick="eliminarRutina('${r.id}')">✕</button>
+        </div>
+      </div>
+    </div>`).join('')
+}
+function renderProfReportes(){
+  const dias=['L','M','X','J','V','S','D']
+  const pcts=[92,87,79,61,88,0,0]
+  document.getElementById('rep-week').innerHTML=dias.map((d,i)=>{
+    const cls=pcts[i]===0?'day-nd':pcts[i]>=75?'day-ok':'day-no'
+    return `<div class="day-c"><div class="day-lbl">${d}</div><div class="day-dot ${cls}">${pcts[i]>0?pcts[i]+'%':'—'}</div></div>`
+  }).join('')
+  const alumnos=getAlumnos().filter(a=>a.profId===currentUser.id)
+  const regs=getRegistros()
+  document.getElementById('rep-alumnos').innerHTML=alumnos.map(al=>{
+    const pct=Math.floor(Math.random()*30+70)
+    const col=pct>=85?'var(--green)':pct>=70?'var(--yellow)':'var(--red)'
+    return `<div class="prog-row">
+      <div class="prog-lbl"><span class="prog-name">${al.nombre}</span><span class="prog-pct" style="color:${col}">${pct}%</span></div>
+      <div class="prog-wrap"><div class="prog-fill" style="width:${pct}%;background:${col}"></div></div>
+    </div>`
+  }).join('')
+}
+function renderConfig(){
+  document.getElementById('cfg-gym').value=currentUser.gym||''
+  document.getElementById('cfg-nombre').value=currentUser.nombre||''
+  document.getElementById('cfg-mp').value=currentUser.mpLink||''
+  document.getElementById('cfg-precio').value=currentUser.precio||''
+  document.getElementById('cfg-msg').value=currentUser.msg||''
+  updateLinkPreview()
+}
+function updateLinkPreview(){
+  const v=document.getElementById('cfg-mp').value
+  document.getElementById('link-prev-text').textContent=v||'—'
+}
+function guardarConfig(){
+  const profs=getProfesores()
+  const idx=profs.findIndex(p=>p.id===currentUser.id)
+  if(idx<0)return
+  profs[idx].gym=document.getElementById('cfg-gym').value
+  profs[idx].nombre=document.getElementById('cfg-nombre').value
+  profs[idx].mpLink=document.getElementById('cfg-mp').value
+  profs[idx].precio=document.getElementById('cfg-precio').value
+  profs[idx].msg=document.getElementById('cfg-msg').value
+  save('profesores',profs)
+  currentUser=profs[idx]
+  toast('Configuración guardada ✓','ok')
+}
+function suscribirse(){toast('Redirigiendo a Mercado Pago...','inf')}
+function agregarAlumno(){
+  const nombre=document.getElementById('na-nombre').value.trim()
+  const codigo=document.getElementById('na-codigo').value.trim().toLowerCase()
+  if(!nombre||!codigo){toast('Nombre y código son obligatorios','err');return}
+  const alumnos=getAlumnos()
+  if(alumnos.find(a=>a.codigo===codigo)){toast('Ese código ya existe','err');return}
+  alumnos.push({
+    id:'a'+Date.now(),profId:currentUser.id,
+    nombre,edad:+document.getElementById('na-edad').value||0,
+    nivel:document.getElementById('na-nivel').value,
+    grupo:document.getElementById('na-grupo').value,
+    codigo,pagado:false,activo:true,
+    obs:document.getElementById('na-obs').value
+  })
+  save('alumnos',alumnos)
+  closeModal('m-nuevo-alumno')
+  toast('Alumno agregado ✓','ok')
+  renderProfAlumnos()
+  renderProf()
+  // Reset
+  ;['na-nombre','na-edad','na-grupo','na-codigo','na-obs'].forEach(id=>document.getElementById(id).value='')
+}
+function crearRutina(){
+  const nombre=document.getElementById('nr-nombre').value.trim()
+  if(!nombre){toast('Pon un nombre a la rutina','err');return}
+  const dias=[...document.querySelectorAll('#dias-wrap .dia-btn.on')].map(b=>b.textContent)
+  const ejercicios=[...document.querySelectorAll('#ej-builder-list .ej-builder')].map((div,i)=>{
+    const inputs=div.querySelectorAll('input')
+    const nVal=(idx,def)=>{
+      const v=parseFloat(inputs[idx].value)
+      return isNaN(v)?def:v
+    }
+    return{
+      id:'e'+Date.now()+i,
+      nombre:inputs[0].value.trim()||'Ejercicio '+(i+1),
+      series:nVal(1,3),
+      reps:nVal(2,10),
+      rpe:nVal(3,7),
+      descanso:nVal(4,60),
+      obs:inputs[5]?.value||''
+    }
+  })
+  const rutinas=getRutinas()
+  rutinas.push({id:'r'+Date.now(),profId:currentUser.id,nombre,dias,asignada:document.getElementById('nr-asignar').value,ejercicios})
+  save('rutinas',rutinas)
+  closeModal('m-nueva-rutina')
+  toast('Rutina creada ✓','ok')
+  renderProfRutinas()
+  document.getElementById('nr-nombre').value=''
+}
+function eliminarRutina(id){
+  const rutinas=getRutinas().filter(r=>r.id!==id)
+  save('rutinas',rutinas);renderProfRutinas()
+  toast('Rutina eliminada','inf')
+}
+function openAsignar(rutinaId){
+  rutinaActiva=rutinaId
+  const rutina=getRutinas().find(r=>r.id===rutinaId)
+  document.getElementById('m-asignar-title').textContent='Asignar: '+rutina?.nombre
+  const alumnos=getAlumnos().filter(a=>a.profId===currentUser.id)
+  const sel=document.getElementById('as-alumnos')
+  sel.innerHTML='<option value="todos">Todos los alumnos</option>'+
+    alumnos.map(a=>`<option value="${a.id}">${a.nombre}</option>`).join('')
+  const hoyDate=new Date().toISOString().split('T')[0]
+  document.getElementById('as-fecha').value=hoyDate
+  openModal('m-asignar')
+}
+function confirmarAsignacion(){
+  if(!rutinaActiva)return
+  const rutinas=getRutinas()
+  const idx=rutinas.findIndex(r=>r.id===rutinaActiva)
+  if(idx<0)return
+  rutinas[idx].asignada=document.getElementById('as-alumnos').value
+  save('rutinas',rutinas)
+  closeModal('m-asignar')
+  toast('Rutina asignada ✓','ok')
+  renderProfRutinas()
+}
+function addEj(){
+  const d=document.createElement('div');d.className='ej-builder'
+  d.innerHTML=`<button class="btn-rm" onclick="rmEj(this)">×</button>
+    <div class="b-row"><input class="b-inp" style="flex:2" placeholder="Nombre del ejercicio"></div>
+    <div class="b-row">
+      <input class="b-inp" placeholder="Series" type="number">
+      <input class="b-inp" placeholder="Reps" type="number">
+      <input class="b-inp" placeholder="RPE obj." type="number" step="0.5">
+      <input class="b-inp" placeholder="Desc.seg" type="number">
+    </div>
+    <div class="b-row"><input class="b-inp" style="flex:1" placeholder="Obs. técnica"></div>`
+  document.getElementById('ej-builder-list').appendChild(d)
+}
+function rmEj(btn){
+  if(document.querySelectorAll('#ej-builder-list .ej-builder').length>1)btn.closest('.ej-builder').remove()
+  else toast('Mínimo 1 ejercicio','err')
+}
+function toggleDia(btn){btn.classList.toggle('on')}
+
+// ═══════════════════════════════════════════════════════════
+//  ALUMNO
+// ═══════════════════════════════════════════════════════════
+let ejState=[] // estado local de los ejercicios de la sesión
+
+function alumTab(tab){
+  ['hoy','hist','perf'].forEach(t=>document.getElementById('abt-'+t).classList.remove('on'))
+  document.getElementById('abt-'+tab).classList.add('on')
+  const main=document.getElementById('alum-main')
+  if(tab==='hoy')renderAlumnoHoy(main)
+  else if(tab==='hist')renderAlumnoHist(main)
+  else renderAlumnoPerfil(main)
+}
+
+function renderAlumnoHoy(main){
+  if(!currentUser)return
+  // Buscar rutina de hoy
+  const prof=getProfesores().find(p=>p.id===currentUser.profId)
+  const diasHoy=['D','L','M','X','J','V','S'][new Date().getDay()]
+  const rutinas=getRutinas().filter(r=>r.profId===currentUser.profId&&(r.asignada==='todos'||r.asignada===currentUser.id)&&r.dias.includes(diasHoy))
+  const rutina=rutinas[0]
+
+  // ¿Ya hay registro completado hoy?
+  const regHoy=getRegistros().find(r=>r.alumnoId===currentUser.id&&r.fecha===hoy()&&r.completado)
+  if(regHoy){
+    main.innerHTML=`<div class="comp-wrap fade-up">
+      <div class="comp-icon">✓</div>
+      <div class="comp-title">¡Sesión completada!</div>
+      <div style="color:var(--text2);font-size:.85rem;margin-top:.25rem">${rutina?.nombre||'Sesión de hoy'}</div>
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-v" style="color:var(--green)">${regHoy.ejercicios?.length||0}/${rutina?.ejercicios?.length||0}</div><div class="stat-l">Ejercicios</div></div>
+        <div class="stat-v-wrap stat-box"><div class="stat-v" style="color:${colorRPE(regHoy.rpePromedio||7)}">${regHoy.rpePromedio||'—'}</div><div class="stat-l">RPE prom.</div></div>
+        <div class="stat-box"><div class="stat-v" style="color:var(--accent2)">✓</div><div class="stat-l">Listo</div></div>
+      </div>
+      ${prof?.mpLink?`<div class="pago-banner" style="width:100%;margin-top:.5rem">
+        <div style="flex:1"><div style="font-size:.82rem;font-weight:700">Membresía</div>
+        <div style="font-size:.72rem;color:var(--text2)">${prof.precio||''}</div>
+        ${prof.msg?`<div style="font-size:.7rem;color:var(--text3);margin-top:2px">${prof.msg}</div>`:''}
+        </div>
+        <a href="${prof.mpLink}" target="_blank" class="btn-pagar">Pagar →</a>
+      </div>`:''}
+      <button onclick="alumTab('hist')" style="width:100%;margin-top:.5rem;padding:.7rem;border:1px solid var(--border2);background:transparent;border-radius:var(--r);color:var(--text2);font-size:.85rem">Ver mi historial →</button>
+    </div>`
+    return
+  }
+
+  if(!rutina){
+    main.innerHTML=`<div class="empty" style="margin-top:3rem">
+      <div class="empty-ico">🎉</div>
+      <div class="empty-txt">¡Día de descanso!<br>No tienes rutina para hoy.</div>
+      ${prof?.mpLink?`<div class="pago-banner" style="margin-top:1rem;text-align:left">
+        <div style="flex:1"><div style="font-size:.82rem;font-weight:700">Tu membresía</div><div style="font-size:.72rem;color:var(--text2)">${prof.precio||''}</div></div>
+        <a href="${prof.mpLink}" target="_blank" class="btn-pagar">Pagar →</a>
+      </div>`:''}
+    </div>`;return
+  }
+
+  // Inicializar ejState si está vacío o es de otra rutina
+  if(ejState.length===0||ejState[0]?.rutinaId!==rutina.id){
+    ejState=rutina.ejercicios.map(e=>({...e,rutinaId:rutina.id,done:false,carga:0,rpe:null,comentario:''}))
+  }
+
+  const done=ejState.filter(e=>e.done).length
+  const total=ejState.length
+  const pct=total>0?done/total*100:0
+
+  main.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.4rem">
+      <div>
+        <div style="font-size:.75rem;color:var(--text2)">${new Date().toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'})}</div>
+        <div style="font-size:1rem;font-weight:800;letter-spacing:-.3px;margin-top:1px">${rutina.nombre}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:1.1rem;font-weight:800;color:var(--accent2)">${done}/${total}</div>
+        <div style="font-size:.65rem;color:var(--text3)">completados</div>
+      </div>
+    </div>
+    <div class="prog-wrap"><div class="prog-fill" id="a-prog" style="width:${pct}%"></div></div>
+    <div id="ejs-list"></div>
+    ${prof?.mpLink?`<div class="pago-banner">
+      <div style="flex:1"><div style="font-size:.8rem;font-weight:700">Tu membresía · ${prof.precio||''}</div><div style="font-size:.7rem;color:var(--text2)">${prof.msg||''}</div></div>
+      <a href="${prof.mpLink}" target="_blank" class="btn-pagar">Pagar →</a>
+    </div>`:''}
+  `
+  renderEjs()
+}
+
+function renderEjs(){
+  const list=document.getElementById('ejs-list')
+  if(!list)return
+  list.innerHTML=ejState.map((ej,idx)=>{
+    const isActive=!ej.done&&ejState.findIndex(e=>!e.done)===idx
+    const rpeColors={1:'sel-g',2:'sel-g',3:'sel-g',4:'sel-g',5:'sel-g',6:'sel-g',7:'sel-y',8:'sel-y',9:'sel-r',10:'sel-r'}
+    return `<div class="ej-card ${ej.done?'done':isActive?'active':''}" id="ejc-${ej.id}">
+      <div class="ej-head" onclick="activateEj('${ej.id}')">
+        <div class="ej-num" style="${ej.done?'background:var(--greenbg);color:var(--green)':isActive?'background:var(--goldbg);color:var(--gold2)':'background:var(--bg4);color:var(--text3)'}">${ej.done?'✓':idx+1}</div>
+        <div style="flex:1">
+          <div style="font-size:.88rem;font-weight:700">${ej.nombre}</div>
+          ${!isActive?`<div style="font-size:.72rem;color:var(--text2)">${ej.series}×${ej.reps} · RPE obj. ${ej.rpe}</div>`:''}
+          ${ej.done&&ej.carga?`<div style="font-size:.72rem;color:var(--green)">${ej.carga} kg · RPE ${ej.rpe}</div>`:''}
+          ${ej.obs?`<div style="font-size:.68rem;color:var(--text3);font-style:italic;margin-top:1px">📋 ${ej.obs}</div>`:''}
+        </div>
+        ${ej.done?'<span class="pill pill-green">✓</span>':''}
+      </div>
+      ${isActive?`<div class="ej-body">
+        <div class="spec-row">
+          <span class="spec">${ej.series} series</span>
+          <span class="spec">${ej.reps} reps</span>
+          <span class="spec">RPE obj. ${ej.rpe}</span>
+          <span class="spec">Desc. ${ej.descanso}s</span>
+        </div>
+        <div style="font-size:.72rem;color:var(--text2);margin-bottom:.4rem">Carga usada (kg)</div>
+        <div class="carga-row">
+          <button class="pm-btn" onclick="ajustarCarga('${ej.id}',-2.5)">−</button>
+          <input class="carga-inp" type="number" value="${ej.carga||''}" placeholder="0" oninput="setCarga('${ej.id}',this.value)" min="0">
+          <button class="pm-btn" onclick="ajustarCarga('${ej.id}',2.5)">+</button>
+        </div>
+        <div style="font-size:.72rem;color:var(--text2);margin-bottom:.4rem">RPE final <span style="color:var(--text3)">(objetivo: ${ej.rpe})</span></div>
+        <div class="rpe-grid">
+          ${[1,2,3,4,5,6,7,8,9,10].map(n=>{
+            const sel=ejState.find(e=>e.id===ej.id)?.rpe===n
+            const cls=sel?(n<=6?'sel-g':n<=8?'sel-y':'sel-r'):''
+            return `<button class="rpe-btn ${cls}" onclick="setRpe('${ej.id}',${n})">${n}</button>`
+          }).join('')}
+        </div>
+        <textarea class="obs-inp" rows="2" placeholder="Comentario breve (opcional)..." oninput="setObs('${ej.id}',this.value)">${ej.comentario}</textarea>
+        <button class="${ejState.find(e=>e.id===ej.id)?.rpe?'btn-completar':'btn-completar'}" ${ejState.find(e=>e.id===ej.id)?.rpe?'':'disabled'} onclick="completarEj('${ej.id}')">
+          ${ejState.find(e=>e.id===ej.id)?.rpe?'Marcar como completado ✓':'Selecciona un RPE para continuar'}
+        </button>
+      </div>`:''}
+    </div>`
+  }).join('')
+}
+function activateEj(id){const e=ejState.find(x=>x.id===id);if(e&&!e.done)renderEjs()}
+function ajustarCarga(id,delta){
+  const e=ejState.find(x=>x.id===id);if(!e)return
+  e.carga=Math.max(0,Math.round((e.carga+delta)*2)/2)
+  const inp=document.querySelector(`#ejc-${id} .carga-inp`);if(inp)inp.value=e.carga
+}
+function setCarga(id,v){const e=ejState.find(x=>x.id===id);if(e)e.carga=parseFloat(v)||0}
+function setRpe(id,n){
+  const e=ejState.find(x=>x.id===id);if(!e)return
+  e.rpe=n;renderEjs()
+}
+function setObs(id,v){const e=ejState.find(x=>x.id===id);if(e)e.comentario=v}
+function completarEj(id){
+  const e=ejState.find(x=>x.id===id);if(!e||!e.rpe)return
+  e.done=true
+  toast(`${e.nombre} ✓`,'ok')
+  // ¿Todos listos?
+  if(ejState.every(e=>e.done)){
+    const rpeProm=Math.round(ejState.filter(e=>e.rpe).reduce((s,e)=>s+e.rpe,0)/ejState.filter(e=>e.rpe).length*10)/10
+    const regs=getRegistros()
+    regs.push({
+      id:'reg'+Date.now(),alumnoId:currentUser.id,
+      rutinaId:ejState[0]?.rutinaId,fecha:hoy(),
+      completado:true,rpePromedio:rpeProm,
+      ejercicios:ejState.map(e=>({ejId:e.id,carga:e.carga,rpe:e.rpe,comentario:e.comentario}))
+    })
+    save('registros',regs)
+    ejState=[]
+    alumTab('hoy')
+    return
+  }
+  const pct=ejState.filter(e=>e.done).length/ejState.length*100
+  const pb=document.getElementById('a-prog');if(pb)pb.style.width=pct+'%'
+  renderEjs()
+}
+function renderAlumnoHist(main){
+  const regs=getRegistros().filter(r=>r.alumnoId===currentUser.id).sort((a,b)=>b.fecha.localeCompare(a.fecha))
+  const dias=['D','L','M','X','J','V','S']
+  const semana=Array.from({length:7},(_,i)=>{
+    const d=new Date();d.setDate(d.getDate()-i)
+    const f=d.toISOString().split('T')[0]
+    const reg=regs.find(r=>r.fecha===f)
+    return{dia:dias[d.getDay()],fecha:f,reg}
+  }).reverse()
+  const cumpl=regs.filter(r=>r.completado).length
+  const rpeAll=regs.filter(r=>r.rpePromedio).map(r=>r.rpePromedio)
+  const rpeProm=rpeAll.length?Math.round(rpeAll.reduce((s,v)=>s+v,0)/rpeAll.length*10)/10:null
+  main.innerHTML=`
+    <div class="sec-title">Esta semana</div>
+    <div class="card"><div class="week-row">${semana.map(d=>`<div class="day-c">
+      <div class="day-lbl">${d.dia}</div>
+      <div class="day-dot ${d.reg?.completado?'day-ok':d.fecha<hoy()?'day-no':'day-nd'}">${d.reg?.completado?'✓':d.fecha<hoy()?'✗':'—'}</div>
+    </div>`).join('')}</div></div>
+    <div class="metric-grid">
+      <div class="metric"><div class="metric-lbl">Sesiones totales</div><div class="metric-val" style="color:var(--green)">${cumpl}</div></div>
+      <div class="metric"><div class="metric-lbl">RPE promedio</div><div class="metric-val" style="color:${rpeProm?colorRPE(rpeProm):'var(--text)'}">${rpeProm||'—'}</div></div>
+    </div>
+    <div class="sec-title">Últimos registros</div>
+    ${regs.slice(0,5).map(r=>`<div class="card" style="margin-bottom:.5rem">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-weight:700;font-size:.85rem">${fFecha(r.fecha)}</div>
+        <div class="card-sub">${r.ejercicios?.length||0} ejercicios</div></div>
+        <span class="pill ${pillRPE(r.rpePromedio||7)}">RPE ${r.rpePromedio}</span>
+      </div>
+    </div>`).join('')||'<div class="empty"><div class="empty-ico">📝</div><div class="empty-txt">Sin registros aún</div></div>'}
+    <button onclick="alumTab('hoy')" style="width:100%;margin-top:.5rem;padding:.7rem;border:1px solid var(--border2);background:transparent;border-radius:var(--r);color:var(--text2);font-size:.85rem">← Volver a mi rutina</button>
+  `
+}
+function renderAlumnoPerfil(main){
+  const prof=getProfesores().find(p=>p.id===currentUser.profId)
+  main.innerHTML=`
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:.85rem;margin-bottom:1rem">
+        <div class="ava" style="width:50px;height:50px;font-size:.95rem;background:var(--accentbg);color:var(--accent2)">${iniciales(currentUser.nombre)}</div>
+        <div>
+          <div style="font-weight:800;font-size:1rem;letter-spacing:-.3px">${currentUser.nombre}</div>
+          <div class="card-sub">${currentUser.grupo||''} · ${currentUser.nivel||''}</div>
+        </div>
+      </div>
+      <div style="height:1px;background:var(--border2);margin:.75rem 0"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+        <div class="ps"><div class="ps-v" style="color:var(--accent2)">${currentUser.nivel||'—'}</div><div class="ps-l">Nivel</div></div>
+        <div class="ps"><div class="ps-v" style="color:${currentUser.pagado?'var(--green)':'var(--red)'}">${currentUser.pagado?'Al día':'Pendiente'}</div><div class="ps-l">Membresía</div></div>
+      </div>
+    </div>
+    ${prof?.mpLink?`<div class="pago-banner">
+      <div style="flex:1">
+        <div style="font-size:.82rem;font-weight:700">Renovar membresía</div>
+        <div style="font-size:.72rem;color:var(--text2)">${prof.precio||''}</div>
+        ${prof.msg?`<div style="font-size:.68rem;color:var(--text3);margin-top:2px">${prof.msg}</div>`:''}
+      </div>
+      <a href="${prof.mpLink}" target="_blank" class="btn-pagar">Pagar →</a>
+    </div>`:''}
+    <button onclick="logout()" style="width:100%;margin-top:.25rem;padding:.7rem;border:1px solid var(--border2);background:transparent;border-radius:var(--r);color:var(--text2);font-size:.85rem">Cerrar sesión</button>
+  `
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MODALES / TOAST
+// ═══════════════════════════════════════════════════════════
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function closeMOutside(e,id){if(e.target===document.getElementById(id))closeModal(id)}
+let _tt;
+function toast(msg,type='inf'){
+  const t=document.getElementById('toast');clearTimeout(_tt)
+  t.textContent=msg;t.className='toast show '+type
+  _tt=setTimeout(()=>t.classList.remove('show'),2600)
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SERVICE WORKER (PWA offline)
+// ═══════════════════════════════════════════════════════════
+if('serviceWorker' in navigator){
+  const sw=`self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))))`
+  const blob=new Blob([sw],{type:'application/javascript'})
+  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{})
+}
+</script>
+</body>
+</html>
