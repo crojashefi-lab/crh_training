@@ -9,6 +9,25 @@
 <title>CRH Training</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAw_pz_7zxQw-2bSd3n99rwghZORsxZ22c",
+    authDomain: "crh-training.firebaseapp.com",
+    projectId: "crh-training",
+    storageBucket: "crh-training.firebasestorage.app",
+    messagingSenderId: "242086491220",
+    appId: "1:242086491220:web:c678a04cb9100e136729c1"
+  };
+
+  const fbApp = initializeApp(firebaseConfig);
+  const db = getFirestore(fbApp);
+
+  // Exponer en window para que el script principal (no-módulo) pueda usarlo
+  window._fb = { db, doc, setDoc, onSnapshot };
+</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -270,9 +289,20 @@ select.inp{appearance:none;-webkit-appearance:none}
 <div class="toast" id="toast"></div>
 
 <!-- ═══════════════════════════════════════
+     CARGANDO
+═══════════════════════════════════════ -->
+<div class="screen show" id="s-loading">
+  <div class="login-wrap fade-up" style="text-align:center">
+    <div class="logo" style="justify-content:center"><span class="logo-crh">CRH<span class="logo-dot">.</span></span><span class="logo-training">Training</span></div>
+    <div class="logo-sub" style="margin-bottom:1.5rem">Plataforma de entrenamiento · Claudio Rojas</div>
+    <div style="font-size:.85rem;color:var(--text2)" id="sync-status">Conectando con tu base de datos…</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
      LOGIN
 ═══════════════════════════════════════ -->
-<div class="screen show" id="s-login">
+<div class="screen" id="s-login">
   <div class="login-wrap fade-up">
     <div class="logo"><span class="logo-crh">CRH<span class="logo-dot">.</span></span><span class="logo-training">Training</span></div>
     <div class="logo-sub">Plataforma de entrenamiento · Claudio Rojas</div>
@@ -292,6 +322,14 @@ select.inp{appearance:none;-webkit-appearance:none}
       <div style="font-size:.75rem;color:var(--text2);margin-bottom:.75rem">Tu profesor te dio un código de acceso</div>
       <div class="field"><label>Código de acceso</label><input class="inp" id="a-code" placeholder="Ej: matias2026"></div>
       <button class="btn-main" onclick="loginAlumno()">Entrar a mi rutina</button>
+    </div>
+
+    <!-- Panel de migración (solo aparece si hay datos antiguos sin migrar) -->
+    <div id="migracion-panel" style="display:none;margin-top:1.5rem;padding:1rem;background:var(--goldbg);border:1px solid #f5c51840;border-radius:var(--r2)">
+      <div style="font-size:.85rem;font-weight:700;color:var(--gold2);margin-bottom:.4rem">📦 Datos encontrados en este dispositivo</div>
+      <div style="font-size:.78rem;color:var(--text2);margin-bottom:.7rem">Detectamos alumnos y rutinas guardados solo en este dispositivo. Sube estos datos a la base de datos en la nube para verlos desde cualquier lugar.</div>
+      <div id="migracion-resumen" style="font-size:.78rem;margin-bottom:.7rem"></div>
+      <button class="btn-main" onclick="migrarDatosAntiguos()" id="btn-migrar">Subir estos datos a la nube</button>
     </div>
   </div>
 </div>
@@ -597,12 +635,35 @@ let currentUser = null
 let currentRole = null
 let rutinaActiva = null // ID rutina seleccionada para asignar
 
-// Carga / guarda datos
-function load(k,def){try{const v=localStorage.getItem('gf_'+k);return v?JSON.parse(v):def}catch{return def}}
-function save(k,v){localStorage.setItem('gf_'+k,JSON.stringify(v))}
+// Carga / guarda datos — Firestore (con caché local en memoria + tiempo real)
+const COLECCIONES=['profesores','alumnos','rutinas','registros']
+const _cache={profesores:[],alumnos:[],rutinas:[],registros:[]}
+let _fbReady=false
+let _fbListeners=0
+
+function load(k,def){
+  if(COLECCIONES.includes(k))return _cache[k]??def
+  // 'inited' y otras claves de control siguen en localStorage (locales al dispositivo)
+  try{const v=localStorage.getItem('gf_'+k);return v?JSON.parse(v):def}catch{return def}
+}
+function save(k,v){
+  if(COLECCIONES.includes(k)){
+    _cache[k]=v
+    if(window._fb){
+      const {db,doc,setDoc}=window._fb
+      setDoc(doc(db,'crh_training',k),{data:v}).catch(err=>{
+        console.error('Error guardando en Firestore:',err)
+        toast('⚠️ Error de conexión — verifica tu internet','err')
+      })
+    }
+    return
+  }
+  try{localStorage.setItem('gf_'+k,JSON.stringify(v))}catch{}
+}
 
 // Inicializar SOLO tu cuenta de profesor — plataforma personal, sin datos de muestra
-function initDemo(){
+function initDemoSiVacio(){
+  if(_cache.profesores.length>0)return // ya hay datos en Firestore
   if(load('inited',false))return
   save('profesores',[
     {id:'p1',nombre:'Claudio Rojas',gym:'CRH Training',email:'claudio@crhtraining.cl',pass:'CRHTraining2026',plan:'pro',trialDias:0,activo:true,mpLink:'',precio:'',msg:'Paga aquí tu membresía mensual.'},
@@ -612,7 +673,93 @@ function initDemo(){
   save('registros',[])
   save('inited',true)
 }
-initDemo()
+
+// Conectar listeners en tiempo real a Firestore
+function iniciarSync(){
+  if(!window._fb){
+    // Firebase no cargó (sin internet / bloqueado) — operar con caché vacío y avisar
+    document.getElementById('sync-status').textContent='Sin conexión a la base de datos. Revisa tu internet y recarga la página.'
+    document.getElementById('sync-status').style.color='var(--red)'
+    return
+  }
+  const {db,doc,onSnapshot}=window._fb
+  COLECCIONES.forEach(col=>{
+    onSnapshot(doc(db,'crh_training',col),(snap)=>{
+      _cache[col]=snap.exists()?(snap.data().data||[]):[]
+      _fbListeners++
+      if(_fbListeners===COLECCIONES.length&&!_fbReady){
+        _fbReady=true
+        initDemoSiVacio()
+        onFirestoreReady()
+      }else if(_fbReady){
+        // Datos actualizados (posiblemente desde otro dispositivo) — re-renderizar vista activa
+        refrescarVistaActiva()
+      }
+    },(err)=>{
+      console.error('Error de sincronización:',col,err)
+      document.getElementById('sync-status').textContent='Error conectando a la base de datos.'
+      document.getElementById('sync-status').style.color='var(--red)'
+    })
+  })
+}
+function onFirestoreReady(){
+  document.getElementById('s-loading').classList.remove('show')
+  document.getElementById('s-login').classList.add('show')
+  detectarDatosAntiguos()
+}
+
+// ── Migración: detecta datos de la versión anterior (localStorage puro) ──
+function detectarDatosAntiguos(){
+  let alumnosViejos=[],rutinasViejas=[],registrosViejos=[]
+  try{alumnosViejos=JSON.parse(localStorage.getItem('gf_alumnos')||'[]')}catch{}
+  try{rutinasViejas=JSON.parse(localStorage.getItem('gf_rutinas')||'[]')}catch{}
+  try{registrosViejos=JSON.parse(localStorage.getItem('gf_registros')||'[]')}catch{}
+
+  const hayDatosViejos=alumnosViejos.length>0||rutinasViejas.length>0||registrosViejos.length>0
+  // Solo ofrecer migración si hay datos viejos Y Firestore no tiene ya alumnos/rutinas/registros
+  // (no consideramos 'profesores' porque initDemoSiVacio() siempre crea esa colección)
+  const firestoreVacio=_cache.alumnos.length===0&&_cache.rutinas.length===0&&_cache.registros.length===0
+
+  if(hayDatosViejos&&firestoreVacio){
+    document.getElementById('migracion-panel').style.display='block'
+    document.getElementById('migracion-resumen').innerHTML=
+      `${alumnosViejos.length} alumno${alumnosViejos.length!==1?'s':''} · ${rutinasViejas.length} rutina${rutinasViejas.length!==1?'s':''} · ${registrosViejos.length} registro${registrosViejos.length!==1?'s':''}`
+  }
+}
+function migrarDatosAntiguos(){
+  let alumnosViejos=[],rutinasViejas=[],registrosViejos=[],profesoresViejos=[]
+  try{alumnosViejos=JSON.parse(localStorage.getItem('gf_alumnos')||'[]')}catch{}
+  try{rutinasViejas=JSON.parse(localStorage.getItem('gf_rutinas')||'[]')}catch{}
+  try{registrosViejos=JSON.parse(localStorage.getItem('gf_registros')||'[]')}catch{}
+  try{profesoresViejos=JSON.parse(localStorage.getItem('gf_profesores')||'[]')}catch{}
+
+  const btn=document.getElementById('btn-migrar')
+  btn.disabled=true
+  btn.textContent='Subiendo...'
+
+  if(profesoresViejos.length>0)save('profesores',profesoresViejos)
+  if(alumnosViejos.length>0)save('alumnos',alumnosViejos)
+  if(rutinasViejas.length>0)save('rutinas',rutinasViejas)
+  if(registrosViejos.length>0)save('registros',registrosViejos)
+
+  setTimeout(()=>{
+    document.getElementById('migracion-panel').style.display='none'
+    toast('✅ Datos subidos a la nube correctamente','ok')
+  },800)
+}
+// Re-renderiza la pantalla actualmente visible (llamado tras cambios remotos en tiempo real)
+function refrescarVistaActiva(){
+  if(currentRole==='prof'&&document.getElementById('s-prof').classList.contains('show')){
+    const tabActivo=[...document.querySelectorAll('#prof-itabs .itab')].findIndex(b=>b.classList.contains('on'))
+    const tabs=['inicio','alumnos','rutinas','pagos','reportes','config']
+    renderProf()
+    if(tabActivo>=0)showPTab(tabs[tabActivo])
+  }else if(currentRole==='alumno'&&document.getElementById('s-alumno').classList.contains('show')){
+    const tabActivo=[...document.querySelectorAll('.botnav-btn')].findIndex(b=>b.classList.contains('on'))
+    const tabs=['hoy','hist','perf']
+    if(tabActivo>=0)alumTab(tabs[tabActivo])
+  }
+}
 
 
 
@@ -1587,6 +1734,14 @@ if('serviceWorker' in navigator){
   const blob=new Blob([sw],{type:'application/javascript'})
   navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{})
 }
+
+// Iniciar conexión con Firestore (espera breve a que el módulo Firebase termine de cargar)
+function esperarFirebaseEIniciar(intentos=0){
+  if(window._fb||intentos>30){iniciarSync();return}
+  setTimeout(()=>esperarFirebaseEIniciar(intentos+1),100)
+}
+esperarFirebaseEIniciar()
+
 </script>
 </body>
 </html>
